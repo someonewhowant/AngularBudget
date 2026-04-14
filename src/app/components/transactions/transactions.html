@@ -1,0 +1,148 @@
+<div class="app-container">
+  <app-sidebar></app-sidebar>
+  <main class="main-content">
+    <header class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h1>Transaction History</h1>
+        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">A detailed log of your financial activities.</p>
+      </div>
+      <div style="display: flex; gap: 12px;">
+        <button (click)="toggleModal()" class="btn-primary" style="padding: 12px 24px; background: var(--accent-purple); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-plus"></i>
+          Add Transaction
+        </button>
+      </div>
+    </header>
+
+    <div class="glass-card" style="margin-bottom: 24px; display: flex; gap: 15px; align-items: center; padding: 15px 24px;">
+      <div style="flex: 1; position: relative;">
+        <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+        <input type="text" placeholder="Search vendor or category..." (input)="handleSearch($event)" class="form-control" style="padding-left: 45px;">
+      </div>
+      <select (change)="handleFilter($event)" class="form-control" style="width: auto;">
+        <option value="all">All Categories</option>
+        <option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Income']" [value]="c">{{c}}</option>
+      </select>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 2fr 1fr;">
+      <div class="glass-card">
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="text-align: left; color: var(--text-dim); font-size: 0.8rem; border-bottom: 1px solid var(--border-glass);">
+              <th style="padding-bottom: 15px;">VENDOR / CATEGORY</th>
+              <th style="padding-bottom: 15px;">DATE</th>
+              <th style="padding-bottom: 15px;">ACCOUNT</th>
+              <th style="padding-bottom: 15px; text-align: right;">AMOUNT</th>
+              <th style="padding-bottom: 15px; text-align: right;">ACTIONS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="filteredTransactions$ | async as transactions; else noTransactions">
+              <tr *ngFor="let t of transactions" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 15px 0;">
+                  <div><b>{{t.vendor}}</b></div>
+                  <div style="font-size: 0.75rem; color: var(--text-dim);">{{t.category}}</div>
+                </td>
+                <td style="padding: 15px 0;">{{t.date}}</td>
+                <td style="padding: 15px 0;">{{t.account}}</td>
+                <td style="padding: 15px 0; text-align: right;" [class]="t.type === 'income' ? 'blue-glow' : 'purple-glow'">
+                  {{t.type === 'income' ? '+' : '-'}}${{(+t.amount).toLocaleString()}}
+                </td>
+                <td style="padding: 15px 0; text-align: right;">
+                  <button (click)="handleDelete(t.id)" style="background: none; border: none; color: #ff4d4d; cursor: pointer;">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </td>
+              </tr>
+              <tr *ngIf="transactions.length === 0">
+                <td colspan="5" style="padding: 20px; text-align: center; color: var(--text-dim);">No transactions found.</td>
+              </tr>
+            </ng-container>
+            <ng-template #noTransactions>
+              <tr>
+                <td colspan="5" style="padding: 20px; text-align: center; color: var(--text-dim);">No transactions found.</td>
+              </tr>
+            </ng-template>
+          </tbody>
+        </table>
+      </div>
+      
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="glass-card" *ngIf="summary$ | async as summary">
+          <h3 style="margin-bottom: 20px;">Monthly Summary</h3>
+          <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+              <p style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Total Income</p>
+              <p class="blue-glow" style="font-size: 1.5rem; font-weight: 700;">${{summary.income.toLocaleString()}}</p>
+            </div>
+            <div style="padding: 15px; background: rgba(188, 19, 254, 0.1); border-radius: 8px; border-left: 4px solid var(--accent-purple);">
+              <p style="font-size: 0.8rem; color: var(--text-dim); text-transform: uppercase;">Total Expenses</p>
+              <p class="purple-glow" style="font-size: 1.5rem; font-weight: 700;">${{summary.expense.toLocaleString()}}</p>
+            </div>
+          </div>
+          <div style="margin-top: 25px;" *ngIf="progress$ | async as progress">
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">Income vs Expense</p>
+            <div class="progress-bar" style="height: 12px; background: rgba(188, 19, 254, 0.3);">
+              <div class="progress-fill" [style.width.%]="progress > 100 ? 100 : progress" style="box-shadow: 0 0 10px rgba(13, 89, 242, 0.5);"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay active" *ngIf="isModalOpen" style="display: flex; align-items: center; justify-content: center;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2>Add Transaction</h2>
+        <button class="modal-close" (click)="toggleModal()">×</button>
+      </div>
+      <form [formGroup]="transactionForm" (ngSubmit)="handleSubmit()">
+        <div class="form-group">
+          <label>Vendor Name</label>
+          <input type="text" formControlName="vendor" class="form-control">
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>Category</label>
+            <select formControlName="category" class="form-control">
+              <option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Income']" [value]="c">{{c}}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Account</label>
+            <select formControlName="account" class="form-control">
+              <option *ngFor="let a of ['Visa Card', 'Cash', 'Direct Deposit']" [value]="a">{{a}}</option>
+            </select>
+          </div>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>Date</label>
+            <input type="date" formControlName="date" class="form-control">
+          </div>
+          <div class="form-group">
+            <label>Amount ($)</label>
+            <input type="number" step="0.01" formControlName="amount" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Type</label>
+          <div style="display: flex; gap: 20px; margin-top: 10px;">
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="radio" formControlName="type" value="expense"> Expense
+            </label>
+            <label style="display: flex; align-items: center; gap: 8px;">
+              <input type="radio" formControlName="type" value="income"> Income
+            </label>
+          </div>
+        </div>
+        <button type="submit" [disabled]="!transactionForm.valid" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--accent-purple); color: white; cursor: pointer;">
+          Save Transaction
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

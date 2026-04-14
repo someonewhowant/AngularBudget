@@ -1,0 +1,28 @@
+<aside class="sidebar">
+  <div class="logo">
+    <i class="fas fa-rocket"></i>
+    <span>Angular Budget</span>
+  </div>
+  <nav class="nav-links">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+      <i class="fas fa-th-large"></i>
+      <span>Dashboard</span>
+    </a>
+    <a routerLink="/budget" routerLinkActive="active" class="nav-link">
+      <i class="fas fa-wallet"></i>
+      <span>Budget Planning</span>
+    </a>
+    <a routerLink="/transactions" routerLinkActive="active" class="nav-link">
+      <i class="fas fa-exchange-alt"></i>
+      <span>Transactions</span>
+    </a>
+    <a routerLink="/reports" routerLinkActive="active" class="nav-link">
+      <i class="fas fa-chart-pie"></i>
+      <span>Reports</span>
+    </a>
+    <a routerLink="/settings" routerLinkActive="active" class="nav-link">
+      <i class="fas fa-cog"></i>
+      <span>Settings</span>
+    </a>
+  </nav>
+</aside>

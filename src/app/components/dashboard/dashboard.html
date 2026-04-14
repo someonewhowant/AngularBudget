@@ -1,0 +1,121 @@
+<div class="app-container">
+  <app-sidebar></app-sidebar>
+  <main class="main-content">
+    <header class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
+      <div *ngIf="state$ | async as state">
+        <h1>Welcome back, {{state.user.name}}</h1>
+        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Here's your financial overview for today.</p>
+      </div>
+    </header>
+
+    <div class="grid dash-grid">
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="glass-card balance-card" *ngIf="summary$ | async as summary">
+          <div style="position: relative; z-index: 1;">
+            <p style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-dim);">Total Balance</p>
+            <h2 style="font-size: 3rem; margin: 10px 0;">${{summary.balance.toLocaleString()}}</h2>
+            <div style="display: flex; gap: 20px;">
+              <div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Monthly Profit</p>
+                <h4 style="font-size: 1.2rem;">{{summary.profit >= 0 ? '+' : ''}}${{summary.profit.toLocaleString()}}</h4>
+              </div>
+              <div style="width: 1px; background: var(--border-glass);"></div>
+              <div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Income</p>
+                <h4 class="blue-glow" style="font-size: 1.2rem;">${{summary.income.toLocaleString()}}</h4>
+              </div>
+              <div style="width: 1px; background: var(--border-glass);"></div>
+              <div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Expense</p>
+                <h4 class="purple-glow" style="font-size: 1.2rem;">${{summary.expense.toLocaleString()}}</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card">
+          <h3 style="margin-bottom: 25px;">Monthly Spending Trends</h3>
+          <app-base-chart
+            *ngIf="chartData$ | async as chartData"
+            id="spending-trend-chart"
+            type="line"
+            [data]="chartData"
+            [options]="{
+              plugins: { legend: { display: false } },
+              scales: {
+                y: { 
+                  beginAtZero: true, 
+                  grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                  ticks: { color: 'rgba(255, 255, 255, 0.5)', padding: 10 }
+                },
+                x: {
+                  grid: { display: false },
+                  ticks: { color: 'rgba(255, 255, 255, 0.5)', padding: 10 }
+                }
+              }
+            }">
+          </app-base-chart>
+        </div>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 24px;">
+        <div class="glass-card">
+          <h3 style="margin-bottom: 20px;">Top Categories</h3>
+          <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
+            <ng-container *ngIf="topCategories$ | async as topCats; else noExpenses">
+              <li *ngFor="let cat of topCats" style="display: flex; justify-content: space-between;">
+                <span><i class="fas fa-tag blue-glow" style="width: 25px;"></i> {{cat.name}}</span>
+                <b>{{cat.percent}}%</b>
+              </li>
+              <p *ngIf="topCats.length === 0" style="color: var(--text-dim)">No expenses yet.</p>
+            </ng-container>
+            <ng-template #noExpenses>
+              <p style="color: var(--text-dim)">No expenses yet.</p>
+            </ng-template>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div style="grid-column: span 2; margin-top: 24px;">
+      <div class="glass-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+          <h3>Recent Transactions</h3>
+          <a routerLink="/transactions" style="color: var(--primary-blue); text-decoration: none; font-size: 0.9rem;">View All</a>
+        </div>
+        <table style="width: 100%; border-collapse: collapse;">
+          <thead>
+            <tr style="text-align: left; color: var(--text-dim); font-size: 0.8rem; border-bottom: 1px solid var(--border-glass);">
+              <th style="padding-bottom: 15px;">VENDOR</th>
+              <th style="padding-bottom: 15px;">DATE</th>
+              <th style="padding-bottom: 15px;">AMOUNT</th>
+              <th style="padding-bottom: 15px;">STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="recentTransactions$ | async as transactions; else noTransactions">
+              <tr *ngFor="let t of transactions" style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 15px 0;">{{t.vendor}}</td>
+                <td style="padding: 15px 0;">{{t.date}}</td>
+                <td style="padding: 15px 0;" [class]="t.type === 'income' ? 'blue-glow' : 'purple-glow'">
+                  {{t.type === 'income' ? '+' : '-'}}${{(+t.amount).toLocaleString()}}
+                </td>
+                <td style="padding: 15px 0;">
+                  <span style="padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); font-size: 0.75rem;">Completed</span>
+                </td>
+              </tr>
+              <tr *ngIf="transactions.length === 0">
+                <td colspan="4" style="padding: 20px; text-align: center; color: var(--text-dim);">No transactions yet.</td>
+              </tr>
+            </ng-container>
+            <ng-template #noTransactions>
+              <tr>
+                <td colspan="4" style="padding: 20px; text-align: center; color: var(--text-dim);">No transactions yet.</td>
+              </tr>
+            </ng-template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
