@@ -2,14 +2,75 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
-import { SidebarComponent } from '../sidebar/sidebar';
+import { 
+  IonHeader, 
+  IonToolbar, 
+  IonTitle, 
+  IonContent, 
+  IonButtons, 
+  IonMenuButton, 
+  IonModal, 
+  IonItem, 
+  IonLabel, 
+  IonInput, 
+  IonSelect, 
+  IonSelectOption, 
+  IonButton, 
+  IonIcon, 
+  IonList, 
+  IonItemSliding, 
+  IonItemOptions, 
+  IonItemOption, 
+  IonSearchbar, 
+  IonRadioGroup, 
+  IonRadio,
+  IonNote,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonFab,
+  IonFabButton
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { addOutline, trashOutline, searchOutline, filterOutline } from 'ionicons/icons';
 import { map, BehaviorSubject, combineLatest } from 'rxjs';
 import { Transaction } from '../../models/budget.models';
 
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButtons,
+    IonMenuButton,
+    IonModal,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonButton,
+    IonIcon,
+    IonList,
+    IonItemSliding,
+    IonItemOptions,
+    IonItemOption,
+    IonSearchbar,
+    IonRadioGroup,
+    IonRadio,
+    IonNote,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonFab,
+    IonFabButton
+  ],
   templateUrl: './transactions.html',
   styleUrl: './transactions.css'
 })
@@ -52,19 +113,23 @@ export class TransactionsComponent implements OnInit {
     type: ['expense', Validators.required]
   });
 
+  constructor() {
+    addIcons({ addOutline, trashOutline, searchOutline, filterOutline });
+  }
+
   ngOnInit(): void {}
 
   handleSearch(event: any) {
-    this.searchQuery$.next(event.target.value);
+    this.searchQuery$.next(event.detail.value || '');
   }
 
   handleFilter(event: any) {
-    this.filterCategory$.next(event.target.value);
+    this.filterCategory$.next(event.detail.value);
   }
 
-  toggleModal() {
-    this.isModalOpen = !this.isModalOpen;
-    if (!this.isModalOpen) {
+  setOpen(isOpen: boolean) {
+    this.isModalOpen = isOpen;
+    if (!isOpen) {
       this.transactionForm.reset({
         category: 'Food',
         account: 'Visa Card',
@@ -83,13 +148,11 @@ export class TransactionsComponent implements OnInit {
       };
       
       this.store.addTransaction(newTransaction);
-      this.toggleModal();
+      this.setOpen(false);
     }
   }
 
   handleDelete(id: number) {
-    if (confirm('Are you sure you want to delete this transaction?')) {
-      this.store.deleteTransaction(id);
-    }
+    this.store.deleteTransaction(id);
   }
 }

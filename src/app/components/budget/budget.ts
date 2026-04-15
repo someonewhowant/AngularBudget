@@ -2,14 +2,74 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
-import { SidebarComponent } from '../sidebar/sidebar';
 import { BaseChartComponent } from '../base-chart/base-chart';
+import { 
+  IonHeader, 
+  IonToolbar, 
+  IonTitle, 
+  IonContent, 
+  IonButtons, 
+  IonMenuButton, 
+  IonModal, 
+  IonItem, 
+  IonLabel, 
+  IonInput, 
+  IonSelect, 
+  IonSelectOption, 
+  IonButton, 
+  IonIcon, 
+  IonList, 
+  IonProgressBar, 
+  IonNote, 
+  IonGrid, 
+  IonRow, 
+  IonCol, 
+  IonFab, 
+  IonFabButton,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { addOutline, settingsOutline } from 'ionicons/icons';
 import { map, combineLatest } from 'rxjs';
 
 @Component({
   selector: 'app-budget',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, BaseChartComponent],
+  imports: [
+    CommonModule, 
+    FormsModule, 
+    ReactiveFormsModule, 
+    BaseChartComponent,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButtons,
+    IonMenuButton,
+    IonModal,
+    IonItem,
+    IonLabel,
+    IonInput,
+    IonSelect,
+    IonSelectOption,
+    IonButton,
+    IonIcon,
+    IonList,
+    IonProgressBar,
+    IonNote,
+    IonGrid,
+    IonRow,
+    IonCol,
+    IonFab,
+    IonFabButton,
+    IonCard,
+    IonCardHeader,
+    IonCardTitle,
+    IonCardContent
+  ],
   templateUrl: './budget.html',
   styleUrl: './budget.css'
 })
@@ -31,7 +91,7 @@ export class BudgetComponent implements OnInit {
         const spent = transactions
           .filter(t => t.category === b.category && t.type === 'expense')
           .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-        const percent = Math.min((spent / b.amount) * 100, 100);
+        const percent = Math.min((spent / b.amount), 1);
         const isOver = spent > b.amount;
         return { ...b, spent, percent, isOver };
       });
@@ -44,7 +104,7 @@ export class BudgetComponent implements OnInit {
   ]).pipe(
     map(([summary, goal]) => {
       const currentBalance = summary.balance;
-      const progressPercent = Math.min(Math.round((currentBalance / goal) * 100), 100);
+      const progressPercent = Math.min((currentBalance / goal), 1);
       const remaining = Math.max(goal - currentBalance, 0);
       return { currentBalance, goal, progressPercent, remaining };
     })
@@ -81,32 +141,36 @@ export class BudgetComponent implements OnInit {
     goal: [50000, [Validators.required, Validators.min(1)]]
   });
 
+  constructor() {
+    addIcons({ addOutline, settingsOutline });
+  }
+
   ngOnInit(): void {
     this.state$.subscribe(state => {
       this.goalForm.patchValue({ goal: state.savingsGoal }, { emitEvent: false });
     });
   }
 
-  toggleModal() {
-    this.isModalOpen = !this.isModalOpen;
+  setOpen(isOpen: boolean) {
+    this.isModalOpen = isOpen;
   }
 
-  toggleGoalModal() {
-    this.isGoalModalOpen = !this.isGoalModalOpen;
+  setGoalOpen(isOpen: boolean) {
+    this.isGoalModalOpen = isOpen;
   }
 
   handleBudgetSubmit() {
     if (this.budgetForm.valid) {
       const { category, amount } = this.budgetForm.value;
       this.store.setBudget(category, amount);
-      this.toggleModal();
+      this.setOpen(false);
     }
   }
 
   handleGoalSubmit() {
     if (this.goalForm.valid) {
       this.store.setSavingsGoal(this.goalForm.value.goal);
-      this.toggleGoalModal();
+      this.setGoalOpen(false);
     }
   }
 }

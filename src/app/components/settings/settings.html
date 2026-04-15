@@ -1,46 +1,83 @@
-<div class="app-container">
-  <app-sidebar></app-sidebar>
-  <main class="main-content">
-    <header class="section-title">
-      <h1>Settings</h1>
-      <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Manage your profile and application preferences.</p>
-    </header>
-    
-    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 24px;" *ngIf="state$ | async as state">
-      <div class="glass-card">
-        <h3 style="margin-bottom: 20px;">User Profile</h3>
-        <form [formGroup]="profileForm" (ngSubmit)="handleProfileSubmit()">
-          <div class="form-group">
-            <label>Full Name</label>
-            <input type="text" formControlName="name" class="form-control">
-          </div>
-          <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">Save Profile</button>
-        </form>
-      </div>
+<div class="ion-page">
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Settings</ion-title>
+    </ion-toolbar>
+  </ion-header>
 
-      <div class="glass-card">
-        <h3 style="margin-bottom: 20px;">Appearance</h3>
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          <label *ngFor="let t of themes" 
-            [style.background]="state.theme === t.id ? 'var(--border-glass)' : 'transparent'"
-            [style.border-color]="state.theme === t.id ? 'var(--primary-blue)' : 'var(--border-glass)'"
-            style="display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid;">
-            <input type="radio" name="theme" [checked]="state.theme === t.id" (change)="handleThemeChange(t.id)" style="accent-color: var(--primary-blue);">
-            <div [style.background]="t.color" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid #666;"></div>
-            <span>{{t.name}}</span>
-          </label>
-        </div>
-      </div>
+  <ion-content [fullscreen]="true">
+    <div class="main-content">
+      <header class="section-title">
+        <h1>Settings</h1>
+        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Manage your profile and application preferences.</p>
+      </header>
       
-      <div class="glass-card">
-        <h3 style="margin-bottom: 20px;">Danger Zone</h3>
-        <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
-          This action will clear all your transaction history and budget settings. This cannot be undone.
-        </p>
-        <button (click)="handleReset()" style="width: 100%; padding: 14px; background: #ff4d4d; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-          Reset All Data
-        </button>
-      </div>
+      <ion-grid *ngIf="state$ | async as state">
+        <ion-row>
+          <ion-col size="12" size-lg="6">
+            <div class="glass-card">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <ion-icon name="person-outline" color="primary" style="font-size: 1.5rem;"></ion-icon>
+                <h3 style="margin: 0;">User Profile</h3>
+              </div>
+              <form [formGroup]="profileForm" (ngSubmit)="handleProfileSubmit()">
+                <ion-item>
+                  <ion-input label="Full Name" label-placement="stacked" type="text" formControlName="name" placeholder="Enter your name"></ion-input>
+                </ion-item>
+                <ion-button type="submit" [disabled]="!profileForm.valid" expand="block" class="ion-margin-top">
+                  <ion-icon slot="start" name="save-outline"></ion-icon>
+                  Save Profile
+                </ion-button>
+              </form>
+            </div>
+          </ion-col>
+
+          <ion-col size="12" size-lg="6">
+            <div class="glass-card">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <ion-icon name="color-palette-outline" color="secondary" style="font-size: 1.5rem;"></ion-icon>
+                <h3 style="margin: 0;">Appearance</h3>
+              </div>
+              <ion-list lines="none">
+                <ion-radio-group [value]="state.theme" (ionChange)="handleThemeChange($event)">
+                  <ion-item *ngFor="let t of themes" class="theme-item">
+                    <div slot="start" [style.background]="t.color" class="theme-preview"></div>
+                    <ion-radio [value]="t.id">{{t.name}}</ion-radio>
+                  </ion-item>
+                </ion-radio-group>
+              </ion-list>
+            </div>
+          </ion-col>
+        </ion-row>
+        
+        <ion-row>
+          <ion-col size="12">
+            <div class="glass-card border-danger">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 20px;">
+                <ion-icon name="warning-outline" color="danger" style="font-size: 1.5rem;"></ion-icon>
+                <h3 style="margin: 0;">Danger Zone</h3>
+              </div>
+              <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
+                This action will clear all your transaction history and budget settings. This cannot be undone.
+              </p>
+              <ion-button id="present-alert" color="danger" expand="block">
+                <ion-icon slot="start" name="trash-outline"></ion-icon>
+                Reset All Data
+              </ion-button>
+              <ion-alert
+                trigger="present-alert"
+                header="Reset Data?"
+                message="Are you sure you want to delete all your data? This action cannot be undone."
+                [buttons]="alertButtons"
+              ></ion-alert>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </div>
-  </main>
+  </ion-content>
 </div>
+

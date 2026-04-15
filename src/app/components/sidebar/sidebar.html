@@ -1,28 +1,50 @@
-<aside class="sidebar">
-  <div class="logo">
-    <i class="fas fa-rocket"></i>
-    <span>Angular Budget</span>
-  </div>
-  <nav class="nav-links">
-    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
-      <i class="fas fa-th-large"></i>
-      <span>Dashboard</span>
-    </a>
-    <a routerLink="/budget" routerLinkActive="active" class="nav-link">
-      <i class="fas fa-wallet"></i>
-      <span>Budget Planning</span>
-    </a>
-    <a routerLink="/transactions" routerLinkActive="active" class="nav-link">
-      <i class="fas fa-exchange-alt"></i>
-      <span>Transactions</span>
-    </a>
-    <a routerLink="/reports" routerLinkActive="active" class="nav-link">
-      <i class="fas fa-chart-pie"></i>
-      <span>Reports</span>
-    </a>
-    <a routerLink="/settings" routerLinkActive="active" class="nav-link">
-      <i class="fas fa-cog"></i>
-      <span>Settings</span>
-    </a>
-  </nav>
-</aside>
+<ion-menu contentId="main-content">
+  <ion-header>
+    <ion-toolbar>
+      <ion-title>
+        <div class="logo">
+          <ion-icon name="rocket-outline"></ion-icon>
+          <span>Angular Budget</span>
+        </div>
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+  <ion-content>
+    <ion-list lines="none">
+      <ion-menu-toggle auto-hide="false">
+        <ion-item routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" button>
+          <ion-icon slot="start" name="grid-outline"></ion-icon>
+          <ion-label>Dashboard</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <ion-menu-toggle auto-hide="false">
+        <ion-item routerLink="/budget" routerLinkActive="active" button>
+          <ion-icon slot="start" name="wallet-outline"></ion-icon>
+          <ion-label>Budget Planning</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <ion-menu-toggle auto-hide="false">
+        <ion-item routerLink="/transactions" routerLinkActive="active" button>
+          <ion-icon slot="start" name="swap-horizontal-outline"></ion-icon>
+          <ion-label>Transactions</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <ion-menu-toggle auto-hide="false">
+        <ion-item routerLink="/reports" routerLinkActive="active" button>
+          <ion-icon slot="start" name="pie-chart-outline"></ion-icon>
+          <ion-label>Reports</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+
+      <ion-menu-toggle auto-hide="false">
+        <ion-item routerLink="/settings" routerLinkActive="active" button>
+          <ion-icon slot="start" name="settings-outline"></ion-icon>
+          <ion-label>Settings</ion-label>
+        </ion-item>
+      </ion-menu-toggle>
+    </ion-list>
+  </ion-content>
+</ion-menu>

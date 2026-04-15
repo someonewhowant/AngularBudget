@@ -1,124 +1,156 @@
-<div class="app-container">
-  <app-sidebar></app-sidebar>
-  <main class="main-content">
-    <header class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
-      <div>
+<div class="ion-page">
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Budget Planning</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content [fullscreen]="true">
+    <div class="main-content">
+      <header class="section-title">
         <h1>Budget Planning</h1>
         <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Take control of your monthly spending.</p>
-      </div>
-      <button (click)="toggleModal()" style="padding: 12px 24px; background: var(--primary-blue); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;">
-        <i class="fas fa-plus"></i>
-        Set New Budget
-      </button>
-    </header>
+      </header>
 
-    <div class="grid" style="grid-template-columns: 1fr 1fr;">
-      <div style="grid-column: span 2;">
-        <div class="glass-card">
-          <h3 style="margin-bottom: 25px;">Monthly Budget Overview</h3>
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-            <div *ngFor="let b of (budgetData$ | async)" style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px;">
-              <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                <b>{{b.category}}</b>
-                <span [style.color]="b.isOver ? '#ff4d4d' : 'var(--text-dim)'">{{b.percent.toFixed(0)}}%</span>
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12">
+            <div class="glass-card">
+              <h3 style="margin-bottom: 25px;">Monthly Budget Overview</h3>
+              <ion-row>
+                <ion-col size="12" size-md="6" size-lg="4" *ngFor="let b of (budgetData$ | async)">
+                  <div class="budget-item">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                      <b>{{b.category}}</b>
+                      <span [style.color]="b.isOver ? 'var(--ion-color-danger)' : 'var(--text-dim)'">{{(b.percent * 100).toFixed(0)}}%</span>
+                    </div>
+                    <ion-progress-bar [value]="b.percent" [color]="b.isOver ? 'danger' : 'primary'"></ion-progress-bar>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-top: 10px;">
+                      <span><span style="color: var(--text-dim)">Spent: </span> ${{b.spent.toLocaleString()}}</span>
+                      <span><span style="color: var(--text-dim)">Budget: </span> ${{b.amount.toLocaleString()}}</span>
+                    </div>
+                  </div>
+                </ion-col>
+              </ion-row>
+            </div>
+          </ion-col>
+        </ion-row>
+
+        <ion-row>
+          <ion-col size="12" size-lg="6">
+            <div class="glass-card" *ngIf="savingsInfo$ | async as info">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3>Savings Goal</h3>
+                <ion-button fill="clear" size="small" (click)="setGoalOpen(true)">
+                  <ion-icon slot="start" name="settings-outline"></ion-icon>
+                  Edit Goal
+                </ion-button>
               </div>
-              <div class="progress-bar" style="height: 8px; background: rgba(255,255,255,0.05); margin-bottom: 15px;">
-                <div class="progress-fill" [style.width.%]="b.percent" [style.background]="b.isOver ? '#ff4d4d' : 'var(--primary-blue)'"></div>
+              <div style="text-align: center; padding: 10px 0;">
+                <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 5px;">{{(info.progressPercent * 100).toFixed(0)}}%</div>
+                <p style="color: var(--text-dim); font-size: 0.9rem;">Goal Progress</p>
               </div>
-              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                <span><span style="color: var(--text-dim)">Spent: </span> ${{b.spent.toLocaleString()}}</span>
-                <span><span style="color: var(--text-dim)">Budget: </span> ${{b.amount.toLocaleString()}}</span>
+              <ion-progress-bar [value]="info.progressPercent" color="success" style="height: 12px; border-radius: 6px;"></ion-progress-bar>
+              <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-top: 15px; margin-bottom: 20px;">
+                <span><span style="color: var(--text-dim)">Current: </span> ${{info.currentBalance.toLocaleString()}}</span>
+                <span><span style="color: var(--text-dim)">Target: </span> ${{info.goal.toLocaleString()}}</span>
+              </div>
+              <div style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+                <p style="font-size: 0.85rem;">
+                  {{info.remaining > 0 
+                    ? 'You are $' + info.remaining.toLocaleString() + ' away from your goal! 🚀'
+                    : "Congratulations! You've reached your savings goal! 🥳"}}
+                </p>
               </div>
             </div>
-          </div>
-        </div>
-      </div>
+          </ion-col>
 
-      <div class="glass-card" *ngIf="savingsInfo$ | async as info">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h3>Savings Goal</h3>
-          <button (click)="toggleGoalModal()" style="background: none; border: none; color: var(--primary-blue); cursor: pointer; font-size: 0.8rem;">Edit Goal</button>
-        </div>
-        <div style="text-align: center; padding: 10px 0;">
-          <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 5px;">{{info.progressPercent}}%</div>
-          <p style="color: var(--text-dim); font-size: 0.9rem;">Goal Progress</p>
-        </div>
-        <div class="progress-bar" style="height: 12px; background: rgba(255,255,255,0.05); margin: 15px 0;">
-          <div class="progress-fill" [style.width.%]="info.progressPercent" style="background: linear-gradient(to right, #00c6ff, #0072ff);"></div>
-        </div>
-        <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 20px;">
-          <span><span style="color: var(--text-dim)">Current: </span> ${{info.currentBalance.toLocaleString()}}</span>
-          <span><span style="color: var(--text-dim)">Target: </span> ${{info.goal.toLocaleString()}}</span>
-        </div>
-        <div style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
-          <p style="font-size: 0.85rem;">
-            {{info.remaining > 0 
-              ? 'You are $' + info.remaining.toLocaleString() + ' away from your goal! 🚀'
-              : "Congratulations! You've reached your savings goal! 🥳"}}
-          </p>
-        </div>
-      </div>
-
-      <div class="glass-card">
-        <h3 style="margin-bottom: 20px;">Historical Performance</h3>
-        <app-base-chart
-          *ngIf="chartData$ | async as chartData"
-          id="historical-performance-chart"
-          type="bar"
-          [data]="chartData"
-          [options]="{
-            scales: {
-              y: { 
-                grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                ticks: { color: 'rgba(255, 255, 255, 0.5)' }
-              },
-              x: {
-                grid: { display: false },
-                ticks: { color: 'rgba(255, 255, 255, 0.5)' }
-              }
-            }
-          }">
-        </app-base-chart>
-      </div>
+          <ion-col size="12" size-lg="6">
+            <div class="glass-card">
+              <h3 style="margin-bottom: 20px;">Historical Performance</h3>
+              <app-base-chart
+                *ngIf="chartData$ | async as chartData"
+                id="historical-performance-chart"
+                type="bar"
+                [data]="chartData"
+                [options]="{
+                  scales: {
+                    y: { 
+                      grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                      ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                    },
+                    x: {
+                      grid: { display: false },
+                      ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                    }
+                  }
+                }">
+              </app-base-chart>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
     </div>
-  </main>
 
-  <!-- Modals -->
-  <div class="modal-overlay active" *ngIf="isModalOpen" style="display: flex; align-items: center; justify-content: center;">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h2>Set Category Budget</h2>
-        <button class="modal-close" (click)="toggleModal()">×</button>
-      </div>
-      <form [formGroup]="budgetForm" (ngSubmit)="handleBudgetSubmit()">
-        <div class="form-group">
-          <label>Category</label>
-          <select formControlName="category" class="form-control">
-            <option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']" [value]="c">{{c}}</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Monthly Limit ($)</label>
-          <input type="number" formControlName="amount" class="form-control">
-        </div>
-        <button type="submit" [disabled]="!budgetForm.valid" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer;">Save Budget</button>
-      </form>
-    </div>
-  </div>
+    <ion-fab vertical="bottom" horizontal="end" slot="fixed">
+      <ion-fab-button (click)="setOpen(true)">
+        <ion-icon name="add-outline"></ion-icon>
+      </ion-fab-button>
+    </ion-fab>
 
-  <div class="modal-overlay active" *ngIf="isGoalModalOpen" style="display: flex; align-items: center; justify-content: center;">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h2>Edit Savings Goal</h2>
-        <button class="modal-close" (click)="toggleGoalModal()">×</button>
-      </div>
-      <form [formGroup]="goalForm" (ngSubmit)="handleGoalSubmit()">
-        <div class="form-group">
-          <label>Target Amount ($)</label>
-          <input type="number" formControlName="goal" class="form-control">
-        </div>
-        <button type="submit" [disabled]="!goalForm.valid" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--accent-purple); color: white; cursor: pointer;">Update Goal</button>
-      </form>
-    </div>
-  </div>
+    <ion-modal [isOpen]="isModalOpen" (didDismiss)="setOpen(false)">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Set Category Budget</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="setOpen(false)">Close</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <form [formGroup]="budgetForm" (ngSubmit)="handleBudgetSubmit()">
+            <ion-item>
+              <ion-select label="Category" label-placement="stacked" formControlName="category">
+                <option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']" [value]="c">{{c}}</option>
+              </ion-select>
+            </ion-item>
+            <ion-item>
+              <ion-input label="Monthly Limit ($)" label-placement="stacked" type="number" formControlName="amount"></ion-input>
+            </ion-item>
+            <ion-button type="submit" expand="block" [disabled]="!budgetForm.valid" class="ion-margin-top">
+              Save Budget
+            </ion-button>
+          </form>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+
+    <ion-modal [isOpen]="isGoalModalOpen" (didDismiss)="setGoalOpen(false)">
+      <ng-template>
+        <ion-header>
+          <ion-toolbar>
+            <ion-title>Edit Savings Goal</ion-title>
+            <ion-buttons slot="end">
+              <ion-button (click)="setGoalOpen(false)">Close</ion-button>
+            </ion-buttons>
+          </ion-toolbar>
+        </ion-header>
+        <ion-content class="ion-padding">
+          <form [formGroup]="goalForm" (ngSubmit)="handleGoalSubmit()">
+            <ion-item>
+              <ion-input label="Target Amount ($)" label-placement="stacked" type="number" formControlName="goal"></ion-input>
+            </ion-item>
+            <ion-button type="submit" expand="block" [disabled]="!goalForm.valid" class="ion-margin-top">
+              Update Goal
+            </ion-button>
+          </form>
+        </ion-content>
+      </ng-template>
+    </ion-modal>
+  </ion-content>
 </div>
+

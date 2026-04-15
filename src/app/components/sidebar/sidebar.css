@@ -1,0 +1,27 @@
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  color: var(--primary-blue);
+}
+
+.logo ion-icon {
+  font-size: 24px;
+}
+
+ion-item {
+  --background: transparent;
+  --color: var(--text-dim);
+  --border-radius: 8px;
+  margin: 4px 8px;
+}
+
+ion-item.active {
+  --background: var(--glass-bg);
+  --color: var(--primary-blue);
+}
+
+ion-item ion-icon {
+  color: inherit;
+}

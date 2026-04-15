@@ -2,14 +2,35 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { StoreService } from '../../services/store.service';
-import { SidebarComponent } from '../sidebar/sidebar';
 import { BaseChartComponent } from '../base-chart/base-chart';
-import { combineLatest, map } from 'rxjs';
+import { 
+  IonHeader, 
+  IonToolbar, 
+  IonTitle, 
+  IonContent, 
+  IonButtons, 
+  IonMenuButton,
+  IonIcon
+} from '@ionic/angular/standalone';
+import { addIcons } from 'ionicons';
+import { menuOutline, pricetagOutline } from 'ionicons/icons';
+import { map } from 'rxjs';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, SidebarComponent, BaseChartComponent],
+  imports: [
+    CommonModule, 
+    RouterLink, 
+    BaseChartComponent,
+    IonHeader,
+    IonToolbar,
+    IonTitle,
+    IonContent,
+    IonButtons,
+    IonMenuButton,
+    IonIcon
+  ],
   templateUrl: './dashboard.html',
   styleUrl: './dashboard.css'
 })
@@ -87,6 +108,10 @@ export class DashboardComponent implements OnInit {
   recentTransactions$ = this.state$.pipe(
     map(state => state.transactions.slice(0, 5))
   );
+
+  constructor() {
+    addIcons({ menuOutline, pricetagOutline });
+  }
 
   ngOnInit(): void {}
 }
