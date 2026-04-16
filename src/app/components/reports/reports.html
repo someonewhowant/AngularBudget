@@ -1,0 +1,36 @@
+<div class="ion-page">
+  <ion-header [translucent]="true">
+    <ion-toolbar>
+      <ion-buttons slot="start">
+        <ion-menu-button></ion-menu-button>
+      </ion-buttons>
+      <ion-title>Reports</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <ion-content [fullscreen]="true">
+    <div class="main-content" style="padding: 20px;">
+      <header class="section-title" style="margin-bottom: 30px;">
+        <h1 style="font-size: 2.5rem; font-weight: 700;">Financial Reports</h1>
+        <p style="color: var(--text-dim);">Detailed breakdown of your spending habits.</p>
+      </header>
+
+      <ion-grid>
+        <ion-row>
+          <ion-col size="12" size-lg="6">
+            <div class="glass-card">
+              <h3>Spending by Category</h3>
+              <app-base-chart type="doughnut" [data]="categoryData$ | async" [options]="donutOptions"></app-base-chart>
+            </div>
+          </ion-col>
+          <ion-col size="12" size-lg="6">
+            <div class="glass-card">
+              <h3>Monthly Trend</h3>
+              <app-base-chart type="bar" [data]="monthlyData$ | async" [options]="barOptions"></app-base-chart>
+            </div>
+          </ion-col>
+        </ion-row>
+      </ion-grid>
+    </div>
+  </ion-content>
+</div>

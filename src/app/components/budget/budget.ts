@@ -3,33 +3,26 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { BaseChartComponent } from '../base-chart/base-chart';
-import { 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonButtons, 
-  IonMenuButton, 
-  IonModal, 
-  IonItem, 
-  IonLabel, 
-  IonInput, 
-  IonSelect, 
-  IonSelectOption, 
-  IonButton, 
-  IonIcon, 
-  IonList, 
-  IonProgressBar, 
-  IonNote, 
-  IonGrid, 
-  IonRow, 
-  IonCol, 
-  IonFab, 
-  IonFabButton,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButtons,
+  IonMenuButton,
+  IonModal,
+  IonItem,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonButton,
+  IonIcon,
+  IonProgressBar,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonFab,
+  IonFabButton
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { addOutline, settingsOutline } from 'ionicons/icons';
@@ -39,9 +32,9 @@ import { map, combineLatest } from 'rxjs';
   selector: 'app-budget',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
-    ReactiveFormsModule, 
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
     BaseChartComponent,
     IonHeader,
     IonToolbar,
@@ -51,24 +44,17 @@ import { map, combineLatest } from 'rxjs';
     IonMenuButton,
     IonModal,
     IonItem,
-    IonLabel,
     IonInput,
     IonSelect,
     IonSelectOption,
     IonButton,
     IonIcon,
-    IonList,
     IonProgressBar,
-    IonNote,
     IonGrid,
     IonRow,
     IonCol,
     IonFab,
-    IonFabButton,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent
+    IonFabButton
   ],
   templateUrl: './budget.html',
   styleUrl: './budget.css'
@@ -76,12 +62,12 @@ import { map, combineLatest } from 'rxjs';
 export class BudgetComponent implements OnInit {
   public store = inject(StoreService);
   private fb = inject(FormBuilder);
-  
+
   state$ = this.store.getState();
   summary$ = this.store.getSummary$();
-  
+
   budgets$ = this.state$.pipe(map(s => s.budgets));
-  
+
   budgetData$ = combineLatest([
     this.budgets$,
     this.state$.pipe(map(s => s.transactions))
@@ -136,7 +122,7 @@ export class BudgetComponent implements OnInit {
     category: ['Food', Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]]
   });
-  
+
   goalForm: FormGroup = this.fb.group({
     goal: [50000, [Validators.required, Validators.min(1)]]
   });

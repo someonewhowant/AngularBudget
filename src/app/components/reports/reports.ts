@@ -2,20 +2,16 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { StoreService } from '../../services/store.service';
 import { BaseChartComponent } from '../base-chart/base-chart';
-import { 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonButtons, 
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButtons,
   IonMenuButton,
   IonGrid,
   IonRow,
-  IonCol,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent
+  IonCol
 } from '@ionic/angular/standalone';
 import { map } from 'rxjs';
 
@@ -23,7 +19,7 @@ import { map } from 'rxjs';
   selector: 'app-reports',
   standalone: true,
   imports: [
-    CommonModule, 
+    CommonModule,
     BaseChartComponent,
     IonHeader,
     IonToolbar,
@@ -33,54 +29,10 @@ import { map } from 'rxjs';
     IonMenuButton,
     IonGrid,
     IonRow,
-    IonCol,
-    IonCard,
-    IonCardHeader,
-    IonCardTitle,
-    IonCardContent
+    IonCol
   ],
-  template: `
-    <div class="ion-page">
-      <ion-header [translucent]="true">
-        <ion-toolbar>
-          <ion-buttons slot="start">
-            <ion-menu-button></ion-menu-button>
-          </ion-buttons>
-          <ion-title>Reports</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      <ion-content [fullscreen]="true">
-        <div class="main-content" style="padding: 20px;">
-          <header class="section-title" style="margin-bottom: 30px;">
-            <h1 style="font-size: 2.5rem; font-weight: 700;">Financial Reports</h1>
-            <p style="color: var(--text-dim);">Detailed breakdown of your spending habits.</p>
-          </header>
-
-          <ion-grid>
-            <ion-row>
-              <ion-col size="12" size-lg="6">
-                <div class="glass-card">
-                  <h3>Spending by Category</h3>
-                  <app-base-chart type="doughnut" [data]="categoryData$ | async" [options]="donutOptions"></app-base-chart>
-                </div>
-              </ion-col>
-              <ion-col size="12" size-lg="6">
-                <div class="glass-card">
-                  <h3>Monthly Trend</h3>
-                  <app-base-chart type="bar" [data]="monthlyData$ | async" [options]="barOptions"></app-base-chart>
-                </div>
-              </ion-col>
-            </ion-row>
-          </ion-grid>
-        </div>
-      </ion-content>
-    </div>
-  `,
-  styles: [`
-    h3 { margin-bottom: 20px; color: var(--text-main); }
-    .glass-card { height: 100%; }
-  `]
+  templateUrl: './reports.html',
+  styleUrl: './reports.css'
 })
 export class ReportsComponent implements OnInit {
   private store = inject(StoreService);
@@ -95,7 +47,7 @@ export class ReportsComponent implements OnInit {
           const amt = parseFloat(t.amount.toString());
           cats[t.category] = (cats[t.category] || 0) + amt;
         });
-      
+
       return {
         labels: Object.keys(cats),
         datasets: [{
@@ -151,5 +103,5 @@ export class ReportsComponent implements OnInit {
     }
   };
 
-  ngOnInit() {}
+  ngOnInit() { }
 }

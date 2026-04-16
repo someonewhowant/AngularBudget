@@ -2,26 +2,24 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
-import { 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonButtons, 
-  IonMenuButton, 
-  IonItem, 
-  IonLabel, 
-  IonInput, 
-  IonButton, 
-  IonIcon, 
-  IonList, 
-  IonRadioGroup, 
-  IonRadio, 
-  IonGrid, 
-  IonRow, 
-  IonCol, 
-  IonAlert,
-  IonNote
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButtons,
+  IonMenuButton,
+  IonItem,
+  IonInput,
+  IonButton,
+  IonIcon,
+  IonList,
+  IonRadioGroup,
+  IonRadio,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonAlert
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { personOutline, colorPaletteOutline, warningOutline, saveOutline, trashOutline } from 'ionicons/icons';
@@ -31,8 +29,8 @@ import { map } from 'rxjs';
   selector: 'app-settings',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     IonHeader,
     IonToolbar,
@@ -41,7 +39,6 @@ import { map } from 'rxjs';
     IonButtons,
     IonMenuButton,
     IonItem,
-    IonLabel,
     IonInput,
     IonButton,
     IonIcon,
@@ -51,8 +48,7 @@ import { map } from 'rxjs';
     IonGrid,
     IonRow,
     IonCol,
-    IonAlert,
-    IonNote
+    IonAlert
   ],
   templateUrl: './settings.html',
   styleUrl: './settings.css'
@@ -60,9 +56,9 @@ import { map } from 'rxjs';
 export class SettingsComponent implements OnInit {
   public store = inject(StoreService);
   private fb = inject(FormBuilder);
-  
+
   state$ = this.store.getState();
-  
+
   profileForm: FormGroup = this.fb.group({
     name: ['', Validators.required]
   });

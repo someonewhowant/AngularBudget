@@ -2,27 +2,27 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
-import { 
-  IonHeader, 
-  IonToolbar, 
-  IonTitle, 
-  IonContent, 
-  IonButtons, 
-  IonMenuButton, 
-  IonModal, 
-  IonItem, 
-  IonLabel, 
-  IonInput, 
-  IonSelect, 
-  IonSelectOption, 
-  IonButton, 
-  IonIcon, 
-  IonList, 
-  IonItemSliding, 
-  IonItemOptions, 
-  IonItemOption, 
-  IonSearchbar, 
-  IonRadioGroup, 
+import {
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButtons,
+  IonMenuButton,
+  IonModal,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonButton,
+  IonIcon,
+  IonList,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonSearchbar,
+  IonRadioGroup,
   IonRadio,
   IonNote,
   IonGrid,
@@ -40,8 +40,8 @@ import { Transaction } from '../../models/budget.models';
   selector: 'app-transactions',
   standalone: true,
   imports: [
-    CommonModule, 
-    FormsModule, 
+    CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     IonHeader,
     IonToolbar,
@@ -77,13 +77,13 @@ import { Transaction } from '../../models/budget.models';
 export class TransactionsComponent implements OnInit {
   public store = inject(StoreService);
   private fb = inject(FormBuilder);
-  
+
   state$ = this.store.getState();
   summary$ = this.store.getSummary$();
-  
+
   private searchQuery$ = new BehaviorSubject<string>('');
   private filterCategory$ = new BehaviorSubject<string>('all');
-  
+
   filteredTransactions$ = combineLatest([
     this.state$.pipe(map(s => s.transactions)),
     this.searchQuery$,
@@ -91,8 +91,8 @@ export class TransactionsComponent implements OnInit {
   ]).pipe(
     map(([transactions, query, category]) => {
       return transactions.filter(t => {
-        const matchesSearch = t.vendor.toLowerCase().includes(query.toLowerCase()) || 
-                              t.category.toLowerCase().includes(query.toLowerCase());
+        const matchesSearch = t.vendor.toLowerCase().includes(query.toLowerCase()) ||
+          t.category.toLowerCase().includes(query.toLowerCase());
         const matchesCategory = category === 'all' || t.category === category;
         return matchesSearch && matchesCategory;
       });
@@ -117,7 +117,7 @@ export class TransactionsComponent implements OnInit {
     addIcons({ addOutline, trashOutline, searchOutline, filterOutline });
   }
 
-  ngOnInit(): void {}
+  ngOnInit(): void { }
 
   handleSearch(event: any) {
     this.searchQuery$.next(event.detail.value || '');
@@ -146,7 +146,7 @@ export class TransactionsComponent implements OnInit {
         id: Date.now(),
         ...formValue
       };
-      
+
       this.store.addTransaction(newTransaction);
       this.setOpen(false);
     }
