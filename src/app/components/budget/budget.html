@@ -58,7 +58,7 @@
                 <span><span style="color: var(--text-dim)">Current: </span> ${{info.currentBalance.toLocaleString()}}</span>
                 <span><span style="color: var(--text-dim)">Target: </span> ${{info.goal.toLocaleString()}}</span>
               </div>
-              <div style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+              <div style="padding: 15px; background: rgba(var(--primary-rgb), 0.1); border-radius: 8px; border-left: 4px solid var(--primary);">
                 <p style="font-size: 0.85rem;">
                   {{info.remaining > 0 
                     ? 'You are $' + info.remaining.toLocaleString() + ' away from your goal! 🚀'
@@ -79,17 +79,18 @@
                 [options]="{
                   scales: {
                     y: { 
-                      grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                      ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                      grid: { color: 'var(--chart-grid)' },
+                      ticks: { color: 'var(--text-dim)' }
                     },
                     x: {
                       grid: { display: false },
-                      ticks: { color: 'rgba(255, 255, 255, 0.5)' }
+                      ticks: { color: 'var(--text-dim)' }
                     }
                   }
                 }">
               </app-base-chart>
             </div>
+
           </ion-col>
         </ion-row>
       </ion-grid>
@@ -115,9 +116,10 @@
           <form [formGroup]="budgetForm" (ngSubmit)="handleBudgetSubmit()">
             <ion-item>
               <ion-select label="Category" label-placement="stacked" formControlName="category">
-                <option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']" [value]="c">{{c}}</option>
+                <ion-select-option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']" [value]="c">{{c}}</ion-select-option>
               </ion-select>
             </ion-item>
+
             <ion-item>
               <ion-input label="Monthly Limit ($)" label-placement="stacked" type="number" formControlName="amount"></ion-input>
             </ion-item>

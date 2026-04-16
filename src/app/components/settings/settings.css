@@ -1,0 +1,42 @@
+.theme-preview {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  margin-right: 15px;
+  border: 1px solid var(--border-color);
+}
+
+.theme-item {
+  --padding-start: 0;
+  --inner-padding-end: 0;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.glass-card {
+  margin-bottom: 20px;
+}
+
+.border-danger {
+  border: 1px solid rgba(235, 68, 90, 0.3);
+}
+
+.section-title {
+  margin-bottom: 30px;
+}
+
+.main-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+ion-radio {
+  --color-checked: var(--primary);
+}
+
+ion-item {
+  --background: transparent;
+  --border-style: none;
+}

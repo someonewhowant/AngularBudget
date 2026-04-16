@@ -3,7 +3,7 @@
   align-items: center;
   gap: 10px;
   font-weight: 700;
-  color: var(--primary-blue);
+  color: var(--primary);
 }
 
 .logo ion-icon {
@@ -18,10 +18,11 @@ ion-item {
 }
 
 ion-item.active {
-  --background: var(--glass-bg);
-  --color: var(--primary-blue);
+  --background: var(--bg-card);
+  --color: var(--primary);
 }
 
 ion-item ion-icon {
   color: inherit;
 }
+

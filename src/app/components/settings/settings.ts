@@ -70,8 +70,10 @@ export class SettingsComponent implements OnInit {
   themes = [
     { id: 'dark', name: 'Deep Space (Dark)', color: '#050505' },
     { id: 'light', name: 'Arctic (Light)', color: '#f0f2f5' },
-    { id: 'blue', name: 'Cyber Ocean (Blue)', color: '#0a192f' }
+    { id: 'blue', name: 'Cyber Ocean (Blue)', color: '#0a192f' },
+    { id: 'purple', name: 'Midnight Purple', color: '#1a0b2e' }
   ];
+
 
   public alertButtons = [
     {
