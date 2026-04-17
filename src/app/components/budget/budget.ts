@@ -4,17 +4,16 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } 
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { BaseChartComponent } from '../base-chart/base-chart';
-import { map, combineLatest } from 'rxjs';
+import { map, combineLatest, take } from 'rxjs';
 
 @Component({
   selector: 'app-budget',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, BaseChartComponent],
   templateUrl: './budget.html',
-  styleUrl: './budget.css'
 })
 export class BudgetComponent implements OnInit {
-  public store = inject(StoreService);
+  private store = inject(StoreService);
   private fb = inject(FormBuilder);
   
   state$ = this.store.getState();
@@ -30,7 +29,7 @@ export class BudgetComponent implements OnInit {
       return budgets.map(b => {
         const spent = transactions
           .filter(t => t.category === b.category && t.type === 'expense')
-          .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
         const percent = Math.min((spent / b.amount) * 100, 100);
         const isOver = spent > b.amount;
         return { ...b, spent, percent, isOver };
@@ -82,7 +81,7 @@ export class BudgetComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    this.state$.subscribe(state => {
+    this.state$.pipe(take(1)).subscribe(state => {
       this.goalForm.patchValue({ goal: state.savingsGoal }, { emitEvent: false });
     });
   }
@@ -93,6 +92,11 @@ export class BudgetComponent implements OnInit {
 
   toggleGoalModal() {
     this.isGoalModalOpen = !this.isGoalModalOpen;
+    if (!this.isGoalModalOpen) {
+      this.state$.pipe(take(1)).subscribe(state => {
+        this.goalForm.patchValue({ goal: state.savingsGoal }, { emitEvent: false });
+      });
+    }
   }
 
   handleBudgetSubmit() {

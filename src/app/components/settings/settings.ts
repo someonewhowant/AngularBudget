@@ -3,17 +3,16 @@ import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
-import { map } from 'rxjs';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
   templateUrl: './settings.html',
-  styleUrl: './settings.css'
 })
 export class SettingsComponent implements OnInit {
-  public store = inject(StoreService);
+  private store = inject(StoreService);
   private fb = inject(FormBuilder);
   
   state$ = this.store.getState();
@@ -29,7 +28,7 @@ export class SettingsComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.state$.subscribe(state => {
+    this.state$.pipe(take(1)).subscribe(state => {
       this.profileForm.patchValue({ name: state.user.name }, { emitEvent: false });
     });
   }

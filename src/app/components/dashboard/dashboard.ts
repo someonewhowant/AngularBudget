@@ -11,33 +11,27 @@ import { combineLatest, map } from 'rxjs';
   standalone: true,
   imports: [CommonModule, RouterLink, SidebarComponent, BaseChartComponent],
   templateUrl: './dashboard.html',
-  styleUrl: './dashboard.css'
 })
 export class DashboardComponent implements OnInit {
-  public store = inject(StoreService);
+  private store = inject(StoreService);
   
-  summary$ = this.store.getSummary$();
   state$ = this.store.getState();
+  summary$ = this.store.getSummary$();
   
   chartData$ = this.state$.pipe(
     map(state => {
       const transactions = state.transactions;
-      const last7Days = [...Array(7)].map((_, i) => {
+      const days = 7;
+      const last7Days = Array.from({ length: days }, (_, i) => {
         const d = new Date();
-        d.setDate(d.getDate() - (6 - i));
-        const year = d.getFullYear();
-        const month = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+        d.setDate(d.getDate() - (days - 1 - i));
+        return d.toISOString().split('T')[0];
       });
 
       const dailySpending = last7Days.map(date => {
         return transactions
           .filter(t => t.date === date && t.type === 'expense')
-          .reduce((sum, t) => {
-            const val = parseFloat(t.amount.toString());
-            return sum + (isNaN(val) ? 0 : val);
-          }, 0);
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
       });
 
       return {
@@ -61,26 +55,24 @@ export class DashboardComponent implements OnInit {
   topCategories$ = this.state$.pipe(
     map(state => {
       const transactions = state.transactions;
-      const categories = Object.entries(
-        transactions
-          .filter(t => t.type === 'expense')
-          .reduce((acc: any, t) => {
-            const val = parseFloat(t.amount.toString());
-            acc[t.category] = (acc[t.category] || 0) + (isNaN(val) ? 0 : val);
-            return acc;
-          }, {})
-      )
-      .sort((a: any, b: any) => b[1] - a[1])
-      .slice(0, 3);
+      const categoryTotals = transactions
+        .filter(t => t.type === 'expense')
+        .reduce((acc: Record<string, number>, t) => {
+          const val = Number(t.amount || 0);
+          acc[t.category] = (acc[t.category] || 0) + val;
+          return acc;
+        }, {});
+
+      const totalExpense = Object.values(categoryTotals).reduce((sum, val) => sum + val, 0) || 1;
       
-      const summary = this.store.getSummary();
-      const totalExpense = summary.expense || 1;
-      
-      return categories.map(([cat, amt]: any) => ({
-        name: cat,
-        amount: amt,
-        percent: Math.round((amt / totalExpense) * 100)
-      }));
+      return Object.entries(categoryTotals)
+        .map(([name, amount]) => ({
+          name,
+          amount,
+          percent: Math.round((amount / totalExpense) * 100)
+        }))
+        .sort((a, b) => b.amount - a.amount)
+        .slice(0, 3);
     })
   );
 

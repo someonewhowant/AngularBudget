@@ -15,9 +15,11 @@ const INITIAL_BUDGETS: Budget[] = [
   providedIn: 'root'
 })
 export class StoreService {
-  private state$ = new BehaviorSubject<AppState>(this.loadInitialState());
+  private state$: BehaviorSubject<AppState>;
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
+    this.state$ = new BehaviorSubject<AppState>(this.loadInitialState());
+    
     if (isPlatformBrowser(this.platformId)) {
       this.state$.subscribe(state => {
         localStorage.setItem('transactions', JSON.stringify(state.transactions));
@@ -32,26 +34,31 @@ export class StoreService {
   }
 
   private loadInitialState(): AppState {
-    if (isPlatformBrowser(this.platformId)) {
-      return {
-        transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
-        budgets: JSON.parse(localStorage.getItem('budgets') || JSON.stringify(INITIAL_BUDGETS)),
-        theme: localStorage.getItem('theme') || 'dark',
-        savingsGoal: parseFloat(localStorage.getItem('savingsGoal') || '50000'),
-        user: {
-          name: 'User',
-          balance: 24500
-        }
-      };
-    } else {
-      return {
-        transactions: [],
-        budgets: INITIAL_BUDGETS,
-        theme: 'dark',
-        savingsGoal: 50000,
-        user: { name: 'User', balance: 24500 }
-      };
+    const isBrowser = isPlatformBrowser(this.platformId);
+    if (isBrowser) {
+      try {
+        return {
+          transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
+          budgets: JSON.parse(localStorage.getItem('budgets') || JSON.stringify(INITIAL_BUDGETS)),
+          theme: localStorage.getItem('theme') || 'dark',
+          savingsGoal: parseFloat(localStorage.getItem('savingsGoal') || '50000'),
+          user: {
+            name: 'User',
+            balance: 24500
+          }
+        };
+      } catch (e) {
+        console.error('Error loading state from localStorage', e);
+      }
     }
+    
+    return {
+      transactions: [],
+      budgets: INITIAL_BUDGETS,
+      theme: 'dark',
+      savingsGoal: 50000,
+      user: { name: 'User', balance: 24500 }
+    };
   }
 
   getState() {
@@ -114,29 +121,7 @@ export class StoreService {
     this.state$.next({ ...this.state$.value, ...newState });
   }
 
-  getSummary$() {
-    return this.state$.pipe(
-      map(state => {
-        const transactions = state.transactions;
-        const income = transactions
-          .filter(t => t.type === 'income')
-          .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-        const expense = transactions
-          .filter(t => t.type === 'expense')
-          .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-        
-        return {
-          income,
-          expense,
-          balance: state.user.balance + income - expense,
-          profit: income - expense
-        };
-      })
-    );
-  }
-
-  getSummary() {
-    const state = this.state$.value;
+  private calculateSummary(state: AppState): Summary {
     const transactions = state.transactions;
     const income = transactions
       .filter(t => t.type === 'income')
@@ -151,5 +136,15 @@ export class StoreService {
       balance: state.user.balance + income - expense,
       profit: income - expense
     };
+  }
+
+  getSummary$() {
+    return this.state$.pipe(
+      map(state => this.calculateSummary(state))
+    );
+  }
+
+  getSummary() {
+    return this.calculateSummary(this.state$.value);
   }
 }

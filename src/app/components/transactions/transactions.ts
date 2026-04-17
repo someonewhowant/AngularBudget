@@ -11,10 +11,9 @@ import { Transaction } from '../../models/budget.models';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
   templateUrl: './transactions.html',
-  styleUrl: './transactions.css'
 })
 export class TransactionsComponent implements OnInit {
-  public store = inject(StoreService);
+  private store = inject(StoreService);
   private fb = inject(FormBuilder);
   
   state$ = this.store.getState();
