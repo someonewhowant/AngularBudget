@@ -18,11 +18,20 @@ export interface UserProfile {
   balance: number;
 }
 
+export interface SavingsGoal {
+  id: number;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  category: string;
+  deadline?: string;
+}
+
 export interface AppState {
   transactions: Transaction[];
   budgets: Budget[];
   theme: string;
-  savingsGoal: number;
+  savingsGoals: SavingsGoal[];
   user: UserProfile;
 }
 

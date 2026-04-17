@@ -1,0 +1,111 @@
+<div class="app-container">
+  <app-sidebar></app-sidebar>
+  <main class="main-content">
+    <header class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h1>Savings Goals</h1>
+        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Track your progress towards big purchases
+          and emergency funds.</p>
+      </div>
+      <button (click)="toggleModal()" class="btn-primary"
+        style="width: auto; padding: 12px 24px; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-plus"></i>
+        New Goal
+      </button>
+    </header>
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));">
+      <div *ngFor="let goal of (savingsGoals$ | async)" class="glass-card"
+        style="display: flex; flex-direction: column; gap: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <span
+              style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 1px;">{{goal.category}}</span>
+            <h3 style="margin-top: 5px; font-size: 1.4rem;">{{goal.name}}</h3>
+          </div>
+          <div style="display: flex; gap: 10px;">
+            <button (click)="toggleModal(goal)"
+              style="background: none; border: none; color: var(--text-dim); cursor: pointer;"><i
+                class="fas fa-edit"></i></button>
+            <button (click)="deleteGoal(goal.id)"
+              style="background: none; border: none; color: #ff4d4d; cursor: pointer;"><i
+                class="fas fa-trash"></i></button>
+          </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px 0;">
+          <div
+            style="font-size: 3rem; font-weight: 800; background: linear-gradient(to right, var(--primary-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            {{getProgress(goal)}}%
+          </div>
+          <div class="progress-bar" style="height: 10px; margin: 15px 0;">
+            <div class="progress-fill" [style.width.%]="getProgress(goal)"></div>
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div>
+            <p style="font-size: 0.8rem; color: var(--text-dim);">Saved</p>
+            <p style="font-size: 1.1rem; font-weight: 600;">${{goal.currentAmount.toLocaleString()}}</p>
+          </div>
+          <div style="text-align: right;">
+            <p style="font-size: 0.8rem; color: var(--text-dim);">Target</p>
+            <p style="font-size: 1.1rem; font-weight: 600;">${{goal.targetAmount.toLocaleString()}}</p>
+          </div>
+        </div>
+
+        <button (click)="addFunds(goal)" class="btn-primary"
+          style="margin-top: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main);">
+          Add Funds
+        </button>
+      </div>
+
+      <div *ngIf="(savingsGoals$ | async)?.length === 0"
+        style="grid-column: 1 / -1; text-align: center; padding: 60px; color: var(--text-dim);">
+        <i class="fas fa-piggy-bank" style="font-size: 4rem; margin-bottom: 20px; opacity: 0.2;"></i>
+        <h3>No savings goals yet</h3>
+        <p>Start by creating your first goal to track your savings progress!</p>
+      </div>
+    </div>
+  </main>
+
+  <!-- Modal -->
+  <div class="modal-overlay" [class.active]="isModalOpen">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2>{{editingGoal ? 'Edit Goal' : 'New Savings Goal'}}</h2>
+        <button class="modal-close" (click)="toggleModal()">×</button>
+      </div>
+      <form [formGroup]="goalForm" (ngSubmit)="handleGoalSubmit()">
+        <div class="form-group">
+          <label>Goal Name</label>
+          <input type="text" formControlName="name" class="form-control" placeholder="e.g. New Car, Hawaii Trip">
+        </div>
+        <div class="form-group row" style="display: flex; gap: 20px;">
+          <div style="flex: 1;">
+            <label>Target Amount ($)</label>
+            <input type="number" formControlName="targetAmount" class="form-control">
+          </div>
+          <div style="flex: 1;">
+            <label>Current Saved ($)</label>
+            <input type="number" formControlName="currentAmount" class="form-control">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Category</label>
+          <select formControlName="category" class="form-control">
+            <option value="General">General</option>
+            <option value="Transport">Transport</option>
+            <option value="Housing">Housing</option>
+            <option value="Leisure">Leisure</option>
+            <option value="Security">Security</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
+        <button type="submit" [disabled]="!goalForm.valid" class="btn-primary" style="margin-top: 20px;">
+          {{editingGoal ? 'Update Goal' : 'Create Goal'}}
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

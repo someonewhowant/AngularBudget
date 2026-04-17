@@ -6,7 +6,8 @@
         <h1>Budget Planning</h1>
         <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Take control of your monthly spending.</p>
       </div>
-      <button (click)="toggleModal()" style="padding: 12px 24px; background: var(--primary-blue); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;">
+      <button (click)="toggleModal()"
+        style="padding: 12px 24px; background: var(--primary-blue); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;">
         <i class="fas fa-plus"></i>
         Set New Budget
       </button>
@@ -17,13 +18,15 @@
         <div class="glass-card">
           <h3 style="margin-bottom: 25px;">Monthly Budget Overview</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
-            <div *ngFor="let b of (budgetData$ | async)" style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px;">
+            <div *ngFor="let b of (budgetData$ | async)"
+              style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px;">
               <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
                 <b>{{b.category}}</b>
                 <span [style.color]="b.isOver ? '#ff4d4d' : 'var(--text-dim)'">{{b.percent.toFixed(0)}}%</span>
               </div>
               <div class="progress-bar" style="height: 8px; background: rgba(255,255,255,0.05); margin-bottom: 15px;">
-                <div class="progress-fill" [style.width.%]="b.percent" [style.background]="b.isOver ? '#ff4d4d' : 'var(--primary-blue)'"></div>
+                <div class="progress-fill" [style.width.%]="b.percent"
+                  [style.background]="b.isOver ? '#ff4d4d' : 'var(--primary-blue)'"></div>
               </div>
               <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
                 <span><span style="color: var(--text-dim)">Spent: </span> ${{b.spent.toLocaleString()}}</span>
@@ -36,37 +39,36 @@
 
       <div class="glass-card" *ngIf="savingsInfo$ | async as info">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-          <h3>Savings Goal</h3>
-          <button (click)="toggleGoalModal()" style="background: none; border: none; color: var(--primary-blue); cursor: pointer; font-size: 0.8rem;">Edit Goal</button>
+          <h3>Overall Savings Progress</h3>
+          <a routerLink="/savings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem;">Manage
+            Goals</a>
         </div>
         <div style="text-align: center; padding: 10px 0;">
           <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 5px;">{{info.progressPercent}}%</div>
-          <p style="color: var(--text-dim); font-size: 0.9rem;">Goal Progress</p>
+          <p style="color: var(--text-dim); font-size: 0.9rem;">Total Progress</p>
         </div>
         <div class="progress-bar" style="height: 12px; background: rgba(255,255,255,0.05); margin: 15px 0;">
-          <div class="progress-fill" [style.width.%]="info.progressPercent" style="background: linear-gradient(to right, #00c6ff, #0072ff);"></div>
+          <div class="progress-fill" [style.width.%]="info.progressPercent"
+            style="background: linear-gradient(to right, #00c6ff, #0072ff);"></div>
         </div>
         <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 20px;">
           <span><span style="color: var(--text-dim)">Current: </span> ${{info.currentBalance.toLocaleString()}}</span>
-          <span><span style="color: var(--text-dim)">Target: </span> ${{info.goal.toLocaleString()}}</span>
+          <span><span style="color: var(--text-dim)">Target: </span> ${{info.totalGoal.toLocaleString()}}</span>
         </div>
-        <div style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+        <div
+          style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
           <p style="font-size: 0.85rem;">
-            {{info.remaining > 0 
-              ? 'You are $' + info.remaining.toLocaleString() + ' away from your goal! 🚀'
-              : "Congratulations! You've reached your savings goal! 🥳"}}
+            {{info.remaining > 0
+            ? 'You are $' + info.remaining.toLocaleString() + ' away from your total target! 🚀'
+            : "Congratulations! You've reached your total savings goal! 🥳"}}
           </p>
         </div>
       </div>
 
       <div class="glass-card">
         <h3 style="margin-bottom: 20px;">Historical Performance</h3>
-        <app-base-chart
-          *ngIf="chartData$ | async as chartData"
-          id="historical-performance-chart"
-          type="bar"
-          [data]="chartData"
-          [options]="{
+        <app-base-chart *ngIf="chartData$ | async as chartData" id="historical-performance-chart" type="bar"
+          [data]="chartData" [options]="{
             scales: {
               y: { 
                 grid: { color: 'rgba(255, 255, 255, 0.05)' },
@@ -83,8 +85,8 @@
     </div>
   </main>
 
-  <!-- Modals -->
-  <div class="modal-overlay active" *ngIf="isModalOpen" style="display: flex; align-items: center; justify-content: center;">
+  <div class="modal-overlay active" *ngIf="isModalOpen"
+    style="display: flex; align-items: center; justify-content: center;">
     <div class="modal-container">
       <div class="modal-header">
         <h2>Set Category Budget</h2>
@@ -94,30 +96,17 @@
         <div class="form-group">
           <label>Category</label>
           <select formControlName="category" class="form-control">
-            <option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']" [value]="c">{{c}}</option>
+            <option *ngFor="let c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']" [value]="c">{{c}}
+            </option>
           </select>
         </div>
         <div class="form-group">
           <label>Monthly Limit ($)</label>
           <input type="number" formControlName="amount" class="form-control">
         </div>
-        <button type="submit" [disabled]="!budgetForm.valid" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer;">Save Budget</button>
-      </form>
-    </div>
-  </div>
-
-  <div class="modal-overlay active" *ngIf="isGoalModalOpen" style="display: flex; align-items: center; justify-content: center;">
-    <div class="modal-container">
-      <div class="modal-header">
-        <h2>Edit Savings Goal</h2>
-        <button class="modal-close" (click)="toggleGoalModal()">×</button>
-      </div>
-      <form [formGroup]="goalForm" (ngSubmit)="handleGoalSubmit()">
-        <div class="form-group">
-          <label>Target Amount ($)</label>
-          <input type="number" formControlName="goal" class="form-control">
-        </div>
-        <button type="submit" [disabled]="!goalForm.valid" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--accent-purple); color: white; cursor: pointer;">Update Goal</button>
+        <button type="submit" [disabled]="!budgetForm.valid" class="btn-primary"
+          style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer;">Save
+          Budget</button>
       </form>
     </div>
   </div>

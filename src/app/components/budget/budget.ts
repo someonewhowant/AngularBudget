@@ -39,13 +39,14 @@ export class BudgetComponent implements OnInit {
 
   savingsInfo$ = combineLatest([
     this.summary$,
-    this.state$.pipe(map(s => s.savingsGoal))
+    this.state$.pipe(map(s => s.savingsGoals))
   ]).pipe(
-    map(([summary, goal]) => {
+    map(([summary, goals]) => {
       const currentBalance = summary.balance;
-      const progressPercent = Math.min(Math.round((currentBalance / goal) * 100), 100);
-      const remaining = Math.max(goal - currentBalance, 0);
-      return { currentBalance, goal, progressPercent, remaining };
+      const totalGoal = goals.reduce((sum, g) => sum + g.targetAmount, 0);
+      const progressPercent = totalGoal > 0 ? Math.min(Math.round((currentBalance / totalGoal) * 100), 100) : 0;
+      const remaining = Math.max(totalGoal - currentBalance, 0);
+      return { currentBalance, totalGoal, progressPercent, remaining };
     })
   );
 
@@ -70,33 +71,15 @@ export class BudgetComponent implements OnInit {
   );
 
   isModalOpen = false;
-  isGoalModalOpen = false;
   budgetForm: FormGroup = this.fb.group({
     category: ['Food', Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]]
   });
 
-  goalForm: FormGroup = this.fb.group({
-    goal: [50000, [Validators.required, Validators.min(1)]]
-  });
-
-  ngOnInit(): void {
-    this.state$.pipe(take(1)).subscribe(state => {
-      this.goalForm.patchValue({ goal: state.savingsGoal }, { emitEvent: false });
-    });
-  }
+  ngOnInit(): void { }
 
   toggleModal() {
     this.isModalOpen = !this.isModalOpen;
-  }
-
-  toggleGoalModal() {
-    this.isGoalModalOpen = !this.isGoalModalOpen;
-    if (!this.isGoalModalOpen) {
-      this.state$.pipe(take(1)).subscribe(state => {
-        this.goalForm.patchValue({ goal: state.savingsGoal }, { emitEvent: false });
-      });
-    }
   }
 
   handleBudgetSubmit() {
@@ -104,13 +87,6 @@ export class BudgetComponent implements OnInit {
       const { category, amount } = this.budgetForm.value;
       this.store.setBudget(category, amount);
       this.toggleModal();
-    }
-  }
-
-  handleGoalSubmit() {
-    if (this.goalForm.valid) {
-      this.store.setSavingsGoal(this.goalForm.value.goal);
-      this.toggleGoalModal();
     }
   }
 }

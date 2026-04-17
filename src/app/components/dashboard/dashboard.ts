@@ -14,10 +14,11 @@ import { combineLatest, map } from 'rxjs';
 })
 export class DashboardComponent implements OnInit {
   private store = inject(StoreService);
-  
+
   state$ = this.store.getState();
   summary$ = this.store.getSummary$();
-  
+  savingsGoals$ = this.state$.pipe(map(s => s.savingsGoals));
+
   chartData$ = this.state$.pipe(
     map(state => {
       const transactions = state.transactions;
@@ -64,7 +65,7 @@ export class DashboardComponent implements OnInit {
         }, {});
 
       const totalExpense = Object.values(categoryTotals).reduce((sum, val) => sum + val, 0) || 1;
-      
+
       return Object.entries(categoryTotals)
         .map(([name, amount]) => ({
           name,
@@ -80,5 +81,7 @@ export class DashboardComponent implements OnInit {
     map(state => state.transactions.slice(0, 5))
   );
 
-  ngOnInit(): void {}
+  protected Math = Math;
+
+  ngOnInit(): void { }
 }

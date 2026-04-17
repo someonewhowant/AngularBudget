@@ -1,7 +1,7 @@
 import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, map } from 'rxjs';
-import { AppState, Transaction, Budget, UserProfile, Summary } from '../models/budget.models';
+import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal } from '../models/budget.models';
 
 const INITIAL_BUDGETS: Budget[] = [
   { category: 'Food', amount: 500 },
@@ -9,6 +9,11 @@ const INITIAL_BUDGETS: Budget[] = [
   { category: 'Entertainment', amount: 200 },
   { category: 'Electronics', amount: 300 },
   { category: 'Groceries', amount: 400 }
+];
+
+const INITIAL_SAVINGS_GOALS: SavingsGoal[] = [
+  { id: 1, name: 'New Car', targetAmount: 25000, currentAmount: 5000, category: 'Transport' },
+  { id: 2, name: 'Emergency Fund', targetAmount: 10000, currentAmount: 3000, category: 'Security' }
 ];
 
 @Injectable({
@@ -19,13 +24,13 @@ export class StoreService {
 
   constructor(@Inject(PLATFORM_ID) private platformId: Object) {
     this.state$ = new BehaviorSubject<AppState>(this.loadInitialState());
-    
+
     if (isPlatformBrowser(this.platformId)) {
       this.state$.subscribe(state => {
         localStorage.setItem('transactions', JSON.stringify(state.transactions));
         localStorage.setItem('budgets', JSON.stringify(state.budgets));
+        localStorage.setItem('savingsGoals', JSON.stringify(state.savingsGoals));
         localStorage.setItem('theme', state.theme);
-        localStorage.setItem('savingsGoal', state.savingsGoal.toString());
         this.applyTheme(state.theme);
       });
       // Apply initial theme
@@ -40,8 +45,8 @@ export class StoreService {
         return {
           transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
           budgets: JSON.parse(localStorage.getItem('budgets') || JSON.stringify(INITIAL_BUDGETS)),
+          savingsGoals: JSON.parse(localStorage.getItem('savingsGoals') || JSON.stringify(INITIAL_SAVINGS_GOALS)),
           theme: localStorage.getItem('theme') || 'dark',
-          savingsGoal: parseFloat(localStorage.getItem('savingsGoal') || '50000'),
           user: {
             name: 'User',
             balance: 24500
@@ -51,12 +56,12 @@ export class StoreService {
         console.error('Error loading state from localStorage', e);
       }
     }
-    
+
     return {
       transactions: [],
       budgets: INITIAL_BUDGETS,
+      savingsGoals: INITIAL_SAVINGS_GOALS,
       theme: 'dark',
-      savingsGoal: 50000,
       user: { name: 'User', balance: 24500 }
     };
   }
@@ -79,8 +84,31 @@ export class StoreService {
     this.updateState({ theme });
   }
 
-  setSavingsGoal(amount: number) {
-    this.updateState({ savingsGoal: amount });
+  // Savings Goals Management
+  addSavingsGoal(goal: Omit<SavingsGoal, 'id'>) {
+    const id = Date.now();
+    const savingsGoals = [...this.state$.value.savingsGoals, { ...goal, id }];
+    this.updateState({ savingsGoals });
+  }
+
+  updateSavingsGoal(goal: SavingsGoal) {
+    const savingsGoals = this.state$.value.savingsGoals.map(g => g.id === goal.id ? goal : g);
+    this.updateState({ savingsGoals });
+  }
+
+  deleteSavingsGoal(id: number) {
+    const savingsGoals = this.state$.value.savingsGoals.filter(g => g.id !== id);
+    this.updateState({ savingsGoals });
+  }
+
+  addToSavingsGoal(id: number, amount: number) {
+    const savingsGoals = this.state$.value.savingsGoals.map(g => {
+      if (g.id === id) {
+        return { ...g, currentAmount: g.currentAmount + amount };
+      }
+      return g;
+    });
+    this.updateState({ savingsGoals });
   }
 
   addTransaction(transaction: Transaction) {
@@ -129,7 +157,7 @@ export class StoreService {
     const expense = transactions
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-    
+
     return {
       income,
       expense,
