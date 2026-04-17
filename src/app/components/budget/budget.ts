@@ -15,12 +15,12 @@ import { map, combineLatest, take } from 'rxjs';
 export class BudgetComponent implements OnInit {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
-  
+
   state$ = this.store.getState();
   summary$ = this.store.getSummary$();
-  
+
   budgets$ = this.state$.pipe(map(s => s.budgets));
-  
+
   budgetData$ = combineLatest([
     this.budgets$,
     this.state$.pipe(map(s => s.transactions))
@@ -75,7 +75,7 @@ export class BudgetComponent implements OnInit {
     category: ['Food', Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]]
   });
-  
+
   goalForm: FormGroup = this.fb.group({
     goal: [50000, [Validators.required, Validators.min(1)]]
   });
