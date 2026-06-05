@@ -4,6 +4,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { Account } from '../../models/budget.models';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-accounts',
@@ -14,9 +15,11 @@ import { Account } from '../../models/budget.models';
 export class AccountsComponent {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   accounts = this.store.accounts;
   accountsWithBalance = this.store.accountsWithBalance;
+  currencySymbol = this.store.currencySymbol;
 
   isModalOpen = signal(false);
   editingAccount = signal<Account | null>(null);
@@ -57,8 +60,10 @@ export class AccountsComponent {
       const currentEditing = this.editingAccount();
       if (currentEditing) {
         this.store.updateAccount({ ...currentEditing, ...accountData });
+        this.toastService.show('Account updated successfully!', 'success');
       } else {
         this.store.addAccount(accountData);
+        this.toastService.show('Account created successfully!', 'success');
       }
       this.toggleModal();
     }
@@ -79,6 +84,7 @@ export class AccountsComponent {
     if (id !== null) {
       this.store.deleteAccount(id);
       this.closeConfirmDelete();
+      this.toastService.show('Account deleted successfully!', 'success');
     }
   }
 

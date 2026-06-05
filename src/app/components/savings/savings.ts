@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { SavingsGoal } from '../../models/budget.models';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-savings',
@@ -13,8 +14,10 @@ import { SavingsGoal } from '../../models/budget.models';
 export class SavingsComponent {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   savingsGoals = this.store.savingsGoals;
+  currencySymbol = this.store.currencySymbol;
 
   isModalOpen = signal(false);
   editingGoal = signal<SavingsGoal | null>(null);
@@ -31,7 +34,8 @@ export class SavingsComponent {
     name: ['', Validators.required],
     targetAmount: [0, [Validators.required, Validators.min(1)]],
     currentAmount: [0, [Validators.required, Validators.min(0)]],
-    category: ['General', Validators.required]
+    category: ['General', Validators.required],
+    deadline: ['']
   });
 
   toggleModal(goal?: SavingsGoal) {
@@ -39,14 +43,21 @@ export class SavingsComponent {
     if (this.isModalOpen()) {
       if (goal) {
         this.editingGoal.set(goal);
-        this.goalForm.patchValue(goal);
+        this.goalForm.patchValue({
+          name: goal.name,
+          targetAmount: goal.targetAmount,
+          currentAmount: goal.currentAmount,
+          category: goal.category,
+          deadline: goal.deadline || ''
+        });
       } else {
         this.editingGoal.set(null);
         this.goalForm.reset({
           name: '',
           targetAmount: 0,
           currentAmount: 0,
-          category: 'General'
+          category: 'General',
+          deadline: ''
         });
       }
     }
@@ -58,8 +69,10 @@ export class SavingsComponent {
       const currentEditingGoal = this.editingGoal();
       if (currentEditingGoal) {
         this.store.updateSavingsGoal({ ...currentEditingGoal, ...goalData });
+        this.toastService.show('Savings goal updated successfully!', 'success');
       } else {
         this.store.addSavingsGoal(goalData);
+        this.toastService.show('Savings goal created successfully!', 'success');
       }
       this.toggleModal();
     }
@@ -80,6 +93,7 @@ export class SavingsComponent {
     if (id !== null) {
       this.store.deleteSavingsGoal(id);
       this.closeConfirmDelete();
+      this.toastService.show('Savings goal deleted successfully!', 'success');
     }
   }
 
@@ -100,6 +114,7 @@ export class SavingsComponent {
     if (goal && amount > 0) {
       this.store.addToSavingsGoal(goal.id, amount);
       this.closeAddFunds();
+      this.toastService.show(`Successfully added ${this.currencySymbol()}${amount} to ${goal.name}!`, 'success');
     }
   }
 
@@ -110,5 +125,57 @@ export class SavingsComponent {
 
   getProgress(goal: SavingsGoal): number {
     return Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100);
+  }
+
+  getGoalDeadlineInfo(goal: SavingsGoal) {
+    if (!goal.deadline) return null;
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    const deadlineDate = new Date(goal.deadline);
+    deadlineDate.setHours(0, 0, 0, 0);
+    
+    const timeDiff = deadlineDate.getTime() - now.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    if (goal.currentAmount >= goal.targetAmount) {
+      return { status: 'completed', text: 'Goal achieved! 🎉', alert: false };
+    }
+    
+    if (daysDiff < 0) {
+      return { status: 'overdue', text: 'Deadline passed', alert: true };
+    }
+    
+    if (daysDiff === 0) {
+      return { status: 'due-today', text: 'Due today! ⚠️', alert: true };
+    }
+    
+    const needed = goal.targetAmount - goal.currentAmount;
+    const monthsRemaining = daysDiff / 30.436875;
+    const weeksRemaining = daysDiff / 7;
+    
+    const monthlyRate = monthsRemaining > 0 ? needed / monthsRemaining : needed;
+    const weeklyRate = weeksRemaining > 0 ? needed / weeksRemaining : needed;
+    
+    let timeText = '';
+    if (daysDiff > 30) {
+      const months = Math.floor(daysDiff / 30.436875);
+      const remainingDays = Math.round(daysDiff % 30.436875);
+      if (months > 0) {
+        timeText = `${months}m ${remainingDays}d left`;
+      } else {
+        timeText = `${daysDiff} days left`;
+      }
+    } else {
+      timeText = `${daysDiff} days left`;
+    }
+    
+    return {
+      status: 'active',
+      text: timeText,
+      monthlyRate,
+      weeklyRate,
+      daysLeft: daysDiff,
+      alert: daysDiff <= 14
+    };
   }
 }

@@ -52,12 +52,12 @@
                  [class.blue-glow]="acc.currentBalance >= 0"
                  [class.purple-glow]="acc.currentBalance < 0"
                  [style.color]="acc.currentBalance >= 0 ? 'var(--primary-blue)' : '#ff4d4d'">
-              ${{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}
+              {{currencySymbol()}}{{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}
             </div>
           </div>
 
           <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim);">
-            <span>Initial: ${{acc.initialBalance.toLocaleString()}}</span>
+            <span>Initial: {{currencySymbol()}}{{acc.initialBalance.toLocaleString()}}</span>
             <span>Type: <span style="text-transform: capitalize;">{{acc.type}}</span></span>
           </div>
         </div>
@@ -105,7 +105,7 @@
       </div>
 
       <div class="form-group">
-        <label>Initial Balance ($)</label>
+        <label>Initial Balance ({{currencySymbol()}})</label>
         <input type="number" formControlName="initialBalance" class="form-control" min="0">
       </div>
 

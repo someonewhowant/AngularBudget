@@ -16,6 +16,7 @@ export interface Budget {
 export interface UserProfile {
   name: string;
   balance: number;
+  currency?: string;
 }
 
 export interface SavingsGoal {

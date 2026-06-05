@@ -12,18 +12,18 @@
         @if (summary(); as s) {
           <div class="glass-card" style="padding: 20px;">
             <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Total Income</p>
-            <h3 style="font-size: 1.8rem; margin: 10px 0;">${{s.income.toLocaleString()}}</h3>
+            <h3 style="font-size: 1.8rem; margin: 10px 0;">{{currencySymbol()}}{{s.income.toLocaleString()}}</h3>
             <div style="color: #4cd137; font-size: 0.8rem;"><i class="fas fa-arrow-up"></i> All time</div>
           </div>
           <div class="glass-card" style="padding: 20px;">
             <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Total Expense</p>
-            <h3 style="font-size: 1.8rem; margin: 10px 0;">${{s.expense.toLocaleString()}}</h3>
+            <h3 style="font-size: 1.8rem; margin: 10px 0;">{{currencySymbol()}}{{s.expense.toLocaleString()}}</h3>
             <div style="color: #ff4d4d; font-size: 0.8rem;"><i class="fas fa-arrow-down"></i> All time</div>
           </div>
           <div class="glass-card" style="padding: 20px;">
             <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Net Profit</p>
             <h3 [style.color]="s.profit >= 0 ? '#4cd137' : '#ff4d4d'" style="font-size: 1.8rem; margin: 10px 0;">
-              {{s.profit >= 0 ? '+' : ''}}${{s.profit.toLocaleString()}}
+              {{s.profit >= 0 ? '+' : ''}}{{currencySymbol()}}{{s.profit.toLocaleString()}}
             </h3>
             <div style="font-size: 0.8rem; color: var(--text-dim);">Financial health</div>
           </div>

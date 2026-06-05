@@ -17,21 +17,21 @@
           <div class="glass-card balance-card">
             <div style="position: relative; z-index: 1;">
               <p style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-dim);">Total Balance</p>
-              <h2 style="font-size: 3rem; margin: 10px 0;">${{s.balance.toLocaleString()}}</h2>
+              <h2 style="font-size: 3rem; margin: 10px 0;">{{currencySymbol()}}{{s.balance.toLocaleString()}}</h2>
               <div style="display: flex; gap: 20px;">
                 <div>
                   <p style="font-size: 0.8rem; color: var(--text-dim);">Monthly Profit</p>
-                  <h4 style="font-size: 1.2rem;">{{s.profit >= 0 ? '+' : ''}}${{s.profit.toLocaleString()}}</h4>
+                  <h4 style="font-size: 1.2rem;">{{s.profit >= 0 ? '+' : ''}}{{currencySymbol()}}{{s.profit.toLocaleString()}}</h4>
                 </div>
                 <div style="width: 1px; background: var(--border-glass);"></div>
                 <div>
                   <p style="font-size: 0.8rem; color: var(--text-dim);">Income</p>
-                  <h4 class="blue-glow" style="font-size: 1.2rem;">${{s.income.toLocaleString()}}</h4>
+                  <h4 class="blue-glow" style="font-size: 1.2rem;">{{currencySymbol()}}{{s.income.toLocaleString()}}</h4>
                 </div>
                 <div style="width: 1px; background: var(--border-glass);"></div>
                 <div>
                   <p style="font-size: 0.8rem; color: var(--text-dim);">Expense</p>
-                  <h4 class="purple-glow" style="font-size: 1.2rem;">${{s.expense.toLocaleString()}}</h4>
+                  <h4 class="purple-glow" style="font-size: 1.2rem;">{{currencySymbol()}}{{s.expense.toLocaleString()}}</h4>
                 </div>
               </div>
             </div>
@@ -100,7 +100,7 @@
                   <i class="fas" [class]="acc.type === 'credit' ? 'fa-credit-card' : acc.type === 'savings' ? 'fa-piggy-bank' : acc.type === 'cash' ? 'fa-coins' : 'fa-university'" style="color: var(--primary-blue); width: 16px;"></i>
                   {{acc.name}}
                 </span>
-                <b [style.color]="acc.currentBalance >= 0 ? 'var(--text)' : '#ff4d4d'">${{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</b>
+                <b [style.color]="acc.currentBalance >= 0 ? 'var(--text)' : '#ff4d4d'">{{currencySymbol()}}{{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</b>
               </div>
             }
           </div>
@@ -149,7 +149,7 @@
                     <td style="padding: 15px 0;">{{t.vendor}}</td>
                     <td style="padding: 15px 0;">{{t.date}}</td>
                     <td style="padding: 15px 0;" [class]="t.type === 'income' ? 'blue-glow' : 'purple-glow'">
-                      {{ t.amount | transactionAmount: t.type }}
+                      {{ t.amount | transactionAmount: t.type: currencySymbol() }}
                     </td>
                     <td style="padding: 15px 0;">
                       <span

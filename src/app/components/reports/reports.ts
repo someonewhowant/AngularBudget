@@ -13,6 +13,7 @@ export class ReportsComponent {
   private store = inject(StoreService);
 
   summary = this.store.summary;
+  currencySymbol = this.store.currencySymbol;
 
   // Color palette for chart categories
   private colors = [

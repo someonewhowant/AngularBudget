@@ -21,12 +21,22 @@ export const DEFAULT_ACCOUNTS: Account[] = [
   { id: 'direct-deposit', name: 'Direct Deposit', type: 'checking', initialBalance: 19000 }
 ];
 
+export const CURRENCIES = [
+  { code: 'USD', symbol: '$', name: 'US Dollar (USD)' },
+  { code: 'EUR', symbol: '€', name: 'Euro (EUR)' },
+  { code: 'RUB', symbol: '₽', name: 'Russian Ruble (RUB)' },
+  { code: 'GBP', symbol: '£', name: 'British Pound (GBP)' },
+  { code: 'KZT', symbol: '₸', name: 'Kazakhstani Tenge (KZT)' },
+  { code: 'BYN', symbol: 'Br', name: 'Belarusian Ruble (BYN)' },
+
+];
+
 @Injectable({
   providedIn: 'root'
 })
 export class StoreService {
   private platformId = inject(PLATFORM_ID);
-  
+
   private stateSignal = signal<AppState>(this.loadInitialState());
 
   readonly state = this.stateSignal.asReadonly();
@@ -36,17 +46,25 @@ export class StoreService {
   readonly theme = computed(() => this.stateSignal().theme);
   readonly user = computed(() => this.stateSignal().user);
   readonly summary = computed(() => this.calculateSummary(this.stateSignal()));
-  
+
   readonly expenseCategories = signal<string[]>(['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']);
   readonly incomeCategories = signal<string[]>(['Salary', 'Freelance', 'Investments', 'Other']);
 
+  readonly currencies = signal(CURRENCIES);
+
+  readonly currencySymbol = computed(() => {
+    const curCode = this.stateSignal().user.currency || 'USD';
+    const match = CURRENCIES.find(c => c.code === curCode);
+    return match ? match.symbol : '$';
+  });
+
   readonly accounts = computed(() => this.stateSignal().accounts || DEFAULT_ACCOUNTS);
-  
+
   readonly accountsWithBalance = computed(() => {
     const state = this.stateSignal();
     const accounts = state.accounts || DEFAULT_ACCOUNTS;
     const transactions = state.transactions;
-    
+
     return accounts.map(acc => {
       const accIncome = transactions
         .filter(t => (t.account === acc.id || t.account === acc.name) && t.type === 'income')
@@ -54,7 +72,7 @@ export class StoreService {
       const accExpense = transactions
         .filter(t => (t.account === acc.id || t.account === acc.name) && t.type === 'expense')
         .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
-      
+
       return {
         ...acc,
         currentBalance: acc.initialBalance + accIncome - accExpense
@@ -90,7 +108,8 @@ export class StoreService {
           theme: localStorage.getItem('theme') || 'dark',
           user: JSON.parse(localStorage.getItem('user') || JSON.stringify({
             name: 'User',
-            balance: 24500
+            balance: 24500,
+            currency: 'USD'
           })),
           accounts: JSON.parse(localStorage.getItem('accounts') || JSON.stringify(DEFAULT_ACCOUNTS))
         };
@@ -104,7 +123,7 @@ export class StoreService {
       budgets: INITIAL_BUDGETS,
       savingsGoals: INITIAL_SAVINGS_GOALS,
       theme: 'dark',
-      user: { name: 'User', balance: 24500 },
+      user: { name: 'User', balance: 24500, currency: 'USD' },
       accounts: DEFAULT_ACCOUNTS
     };
   }
@@ -212,7 +231,7 @@ export class StoreService {
   private calculateSummary(state: AppState): Summary {
     const transactions = state.transactions;
     const accounts = state.accounts || DEFAULT_ACCOUNTS;
-    
+
     const income = transactions
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);

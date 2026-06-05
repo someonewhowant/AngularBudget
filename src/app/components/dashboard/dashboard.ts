@@ -18,6 +18,7 @@ export class DashboardComponent {
   summary = this.store.summary;
   savingsGoals = this.store.savingsGoals;
   accounts = this.store.accountsWithBalance;
+  currencySymbol = this.store.currencySymbol;
 
   chartData = computed(() => {
     const transactions = this.store.transactions();

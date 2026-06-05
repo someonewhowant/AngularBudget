@@ -15,6 +15,14 @@
               <label>Full Name</label>
               <input type="text" formControlName="name" class="form-control">
             </div>
+            <div class="form-group">
+              <label>Default Currency</label>
+              <select formControlName="currency" class="form-control">
+                @for (c of currencies(); track c.code) {
+                  <option [value]="c.code">{{c.name}}</option>
+                }
+              </select>
+            </div>
             <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">Save Profile</button>
           </form>
         </div>
@@ -61,17 +69,5 @@
       <button type="button" class="btn-primary" (click)="closeConfirmReset()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1;">Cancel</button>
       <button type="button" class="btn-primary" (click)="executeReset()" style="background: #ff4d4d; flex: 1;">Reset Data</button>
     </div>
-  </div>
-</div>
-
-<!-- Success Alert Modal -->
-<div class="modal-overlay" [class.active]="isSuccessAlertOpen()">
-  <div class="modal-container" style="max-width: 400px; text-align: center;">
-    <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
-      <i class="fas fa-check-circle" style="font-size: 3rem; color: #4eff8a; filter: drop-shadow(0 0 10px rgba(78, 255, 138, 0.4));"></i>
-    </div>
-    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">Success</h3>
-    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">{{alertMessage()}}</p>
-    <button type="button" class="btn-primary" (click)="closeAlert()" style="background: var(--primary-blue); width: 100%;">OK</button>
   </div>
 </div>

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@ang
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-settings',
@@ -12,15 +13,16 @@ import { SidebarComponent } from '../sidebar/sidebar';
 export class SettingsComponent implements OnInit {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
+  private toastService = inject(ToastService);
   
   state = this.store.state;
+  currencies = this.store.currencies;
 
   isConfirmResetOpen = signal(false);
-  isSuccessAlertOpen = signal(false);
-  alertMessage = signal('');
   
   profileForm: FormGroup = this.fb.group({
-    name: ['', Validators.required]
+    name: ['', Validators.required],
+    currency: ['USD', Validators.required]
   });
 
   themes = [
@@ -32,20 +34,26 @@ export class SettingsComponent implements OnInit {
   ngOnInit(): void {
     const user = this.store.user();
     if (user) {
-      this.profileForm.patchValue({ name: user.name }, { emitEvent: false });
+      this.profileForm.patchValue({
+        name: user.name,
+        currency: user.currency || 'USD'
+      }, { emitEvent: false });
     }
   }
 
   handleProfileSubmit() {
     if (this.profileForm.valid) {
-      this.store.updateProfile({ name: this.profileForm.value.name });
-      this.alertMessage.set('Profile updated successfully!');
-      this.isSuccessAlertOpen.set(true);
+      this.store.updateProfile({
+        name: this.profileForm.value.name,
+        currency: this.profileForm.value.currency
+      });
+      this.toastService.show('Profile updated successfully!', 'success');
     }
   }
 
   handleThemeChange(themeId: string) {
     this.store.setTheme(themeId);
+    this.toastService.show(`Theme changed to ${themeId}!`, 'info');
   }
 
   confirmReset() {
@@ -59,11 +67,6 @@ export class SettingsComponent implements OnInit {
   executeReset() {
     this.store.resetData();
     this.closeConfirmReset();
-    this.alertMessage.set('All application data has been reset.');
-    this.isSuccessAlertOpen.set(true);
-  }
-
-  closeAlert() {
-    this.isSuccessAlertOpen.set(false);
+    this.toastService.show('All application data has been reset.', 'info');
   }
 }

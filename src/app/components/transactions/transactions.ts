@@ -5,6 +5,7 @@ import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { Transaction } from '../../models/budget.models';
 import { TransactionAmountPipe } from '../../pipes/transaction-amount.pipe';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-transactions',
@@ -16,11 +17,13 @@ export class TransactionsComponent {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
   private destroyRef = inject(DestroyRef);
+  private toastService = inject(ToastService);
 
   summary = this.store.summary;
   expenseCategories = this.store.expenseCategories;
   incomeCategories = this.store.incomeCategories;
   accounts = this.store.accounts;
+  currencySymbol = this.store.currencySymbol;
 
   allCategories = computed(() => {
     return [...this.expenseCategories(), ...this.incomeCategories()];
@@ -104,6 +107,7 @@ export class TransactionsComponent {
       
       this.store.addTransaction(newTransaction);
       this.toggleModal();
+      this.toastService.show('Transaction added successfully!', 'success');
     }
   }
 
@@ -122,6 +126,7 @@ export class TransactionsComponent {
     if (id !== null) {
       this.store.deleteTransaction(id);
       this.closeConfirmDelete();
+      this.toastService.show('Transaction deleted successfully!', 'success');
     }
   }
 

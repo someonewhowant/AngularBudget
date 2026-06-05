@@ -3,6 +3,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { BaseChartComponent } from '../base-chart/base-chart';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-budget',
@@ -13,9 +14,11 @@ import { BaseChartComponent } from '../base-chart/base-chart';
 export class BudgetComponent {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   budgets = this.store.budgets;
   summary = this.store.summary;
+  currencySymbol = this.store.currencySymbol;
 
   budgetData = computed(() => {
     const budgets = this.store.budgets();
@@ -87,6 +90,7 @@ export class BudgetComponent {
       const { category, amount } = this.budgetForm.value;
       this.store.setBudget(category, amount);
       this.toggleModal();
+      this.toastService.show(`Budget for ${category} updated successfully!`, 'success');
     }
   }
 }

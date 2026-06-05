@@ -29,8 +29,8 @@
                     [style.background]="b.isOver ? '#ff4d4d' : 'var(--primary-blue)'"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                  <span><span style="color: var(--text-dim)">Spent: </span> ${{b.spent.toLocaleString()}}</span>
-                  <span><span style="color: var(--text-dim)">Budget: </span> ${{b.amount.toLocaleString()}}</span>
+                  <span><span style="color: var(--text-dim)">Spent: </span> {{currencySymbol()}}{{b.spent.toLocaleString()}}</span>
+                  <span><span style="color: var(--text-dim)">Budget: </span> {{currencySymbol()}}{{b.amount.toLocaleString()}}</span>
                 </div>
               </div>
             }
@@ -53,14 +53,14 @@
               style="background: linear-gradient(to right, #00c6ff, #0072ff);"></div>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 20px;">
-            <span><span style="color: var(--text-dim)">Current: </span> ${{info.currentBalance.toLocaleString()}}</span>
-            <span><span style="color: var(--text-dim)">Target: </span> ${{info.totalGoal.toLocaleString()}}</span>
+            <span><span style="color: var(--text-dim)">Current: </span> {{currencySymbol()}}{{info.currentBalance.toLocaleString()}}</span>
+            <span><span style="color: var(--text-dim)">Target: </span> {{currencySymbol()}}{{info.totalGoal.toLocaleString()}}</span>
           </div>
           <div
             style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
             <p style="font-size: 0.85rem;">
               {{info.remaining > 0
-              ? 'You are $' + info.remaining.toLocaleString() + ' away from your total target! 🚀'
+              ? 'You are ' + currencySymbol() + info.remaining.toLocaleString() + ' away from your total target! 🚀'
               : "Congratulations! You've reached your total savings goal! 🥳"}}
             </p>
           </div>
@@ -106,7 +106,7 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Monthly Limit ($)</label>
+            <label>Monthly Limit ({{currencySymbol()}})</label>
             <input type="number" formControlName="amount" class="form-control">
           </div>
           <button type="submit" [disabled]="!budgetForm.valid" class="btn-primary"
