@@ -1,47 +1,45 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
-import { map, BehaviorSubject, combineLatest } from 'rxjs';
 import { Transaction } from '../../models/budget.models';
+import { TransactionAmountPipe } from '../../pipes/transaction-amount.pipe';
 
 @Component({
   selector: 'app-transactions',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
+  imports: [ReactiveFormsModule, SidebarComponent, TransactionAmountPipe],
   templateUrl: './transactions.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TransactionsComponent implements OnInit {
+export class TransactionsComponent {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
-  
-  state$ = this.store.getState();
-  summary$ = this.store.getSummary$();
-  
-  private searchQuery$ = new BehaviorSubject<string>('');
-  private filterCategory$ = new BehaviorSubject<string>('all');
-  
-  filteredTransactions$ = combineLatest([
-    this.state$.pipe(map(s => s.transactions)),
-    this.searchQuery$,
-    this.filterCategory$
-  ]).pipe(
-    map(([transactions, query, category]) => {
-      return transactions.filter(t => {
-        const matchesSearch = t.vendor.toLowerCase().includes(query.toLowerCase()) || 
-                              t.category.toLowerCase().includes(query.toLowerCase());
-        const matchesCategory = category === 'all' || t.category === category;
-        return matchesSearch && matchesCategory;
-      });
-    })
-  );
 
-  progress$ = this.summary$.pipe(
-    map(summary => summary.income > 0 ? (summary.expense / summary.income) * 100 : 0)
-  );
+  summary = this.store.summary;
 
-  isModalOpen = false;
+  searchQuery = signal('');
+  filterCategory = signal('all');
+
+  filteredTransactions = computed(() => {
+    const transactions = this.store.transactions();
+    const query = this.searchQuery().toLowerCase();
+    const category = this.filterCategory();
+
+    return transactions.filter(t => {
+      const matchesSearch = t.vendor.toLowerCase().includes(query) || 
+                            t.category.toLowerCase().includes(query);
+      const matchesCategory = category === 'all' || t.category === category;
+      return matchesSearch && matchesCategory;
+    });
+  });
+
+  progress = computed(() => {
+    const s = this.store.summary();
+    return s.income > 0 ? (s.expense / s.income) * 100 : 0;
+  });
+
+  isModalOpen = signal(false);
+  
   transactionForm: FormGroup = this.fb.group({
     vendor: ['', Validators.required],
     category: ['Food', Validators.required],
@@ -51,19 +49,19 @@ export class TransactionsComponent implements OnInit {
     type: ['expense', Validators.required]
   });
 
-  ngOnInit(): void {}
-
-  handleSearch(event: any) {
-    this.searchQuery$.next(event.target.value);
+  handleSearch(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.searchQuery.set(input.value);
   }
 
-  handleFilter(event: any) {
-    this.filterCategory$.next(event.target.value);
+  handleFilter(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.filterCategory.set(select.value);
   }
 
   toggleModal() {
-    this.isModalOpen = !this.isModalOpen;
-    if (!this.isModalOpen) {
+    this.isModalOpen.update(open => !open);
+    if (!this.isModalOpen()) {
       this.transactionForm.reset({
         category: 'Food',
         account: 'Visa Card',

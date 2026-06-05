@@ -1,21 +1,19 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
-import { take } from 'rxjs';
 
 @Component({
   selector: 'app-settings',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
+  imports: [ReactiveFormsModule, SidebarComponent],
   templateUrl: './settings.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsComponent implements OnInit {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
   
-  state$ = this.store.getState();
+  state = this.store.state;
   
   profileForm: FormGroup = this.fb.group({
     name: ['', Validators.required]
@@ -28,9 +26,10 @@ export class SettingsComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    this.state$.pipe(take(1)).subscribe(state => {
-      this.profileForm.patchValue({ name: state.user.name }, { emitEvent: false });
-    });
+    const user = this.store.user();
+    if (user) {
+      this.profileForm.patchValue({ name: user.name }, { emitEvent: false });
+    }
   }
 
   handleProfileSubmit() {

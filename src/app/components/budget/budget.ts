@@ -1,57 +1,50 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { BaseChartComponent } from '../base-chart/base-chart';
-import { map, combineLatest, take } from 'rxjs';
 
 @Component({
   selector: 'app-budget',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent, BaseChartComponent],
+  imports: [ReactiveFormsModule, SidebarComponent, BaseChartComponent],
   templateUrl: './budget.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BudgetComponent implements OnInit {
+export class BudgetComponent {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
 
-  state$ = this.store.getState();
-  summary$ = this.store.getSummary$();
+  budgets = this.store.budgets;
+  summary = this.store.summary;
 
-  budgets$ = this.state$.pipe(map(s => s.budgets));
+  budgetData = computed(() => {
+    const budgets = this.store.budgets();
+    const transactions = this.store.transactions();
 
-  budgetData$ = combineLatest([
-    this.budgets$,
-    this.state$.pipe(map(s => s.transactions))
-  ]).pipe(
-    map(([budgets, transactions]) => {
-      return budgets.map(b => {
-        const spent = transactions
-          .filter(t => t.category === b.category && t.type === 'expense')
-          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-        const percent = Math.min((spent / b.amount) * 100, 100);
-        const isOver = spent > b.amount;
-        return { ...b, spent, percent, isOver };
-      });
-    })
-  );
+    return budgets.map(b => {
+      const spent = transactions
+        .filter(t => t.category === b.category && t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      const percent = Math.min((spent / b.amount) * 100, 100);
+      const isOver = spent > b.amount;
+      return { ...b, spent, percent, isOver };
+    });
+  });
 
-  savingsInfo$ = combineLatest([
-    this.summary$,
-    this.state$.pipe(map(s => s.savingsGoals))
-  ]).pipe(
-    map(([summary, goals]) => {
-      const currentBalance = summary.balance;
-      const totalGoal = goals.reduce((sum, g) => sum + g.targetAmount, 0);
-      const progressPercent = totalGoal > 0 ? Math.min(Math.round((currentBalance / totalGoal) * 100), 100) : 0;
-      const remaining = Math.max(totalGoal - currentBalance, 0);
-      return { currentBalance, totalGoal, progressPercent, remaining };
-    })
-  );
+  savingsInfo = computed(() => {
+    const summary = this.store.summary();
+    const goals = this.store.savingsGoals();
 
-  chartData$ = this.budgetData$.pipe(
-    map(budgets => ({
+    const currentBalance = summary.balance;
+    const totalGoal = goals.reduce((sum, g) => sum + g.targetAmount, 0);
+    const progressPercent = totalGoal > 0 ? Math.min(Math.round((currentBalance / totalGoal) * 100), 100) : 0;
+    const remaining = Math.max(totalGoal - currentBalance, 0);
+    return { currentBalance, totalGoal, progressPercent, remaining };
+  });
+
+  chartData = computed(() => {
+    const budgets = this.budgetData();
+    return {
       labels: budgets.map(b => b.category),
       datasets: [
         {
@@ -67,19 +60,18 @@ export class BudgetComponent implements OnInit {
           borderRadius: 4
         }
       ]
-    }))
-  );
+    };
+  });
 
-  isModalOpen = false;
+  isModalOpen = signal(false);
+  
   budgetForm: FormGroup = this.fb.group({
     category: ['Food', Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]]
   });
 
-  ngOnInit(): void { }
-
   toggleModal() {
-    this.isModalOpen = !this.isModalOpen;
+    this.isModalOpen.update(open => !open);
   }
 
   handleBudgetSubmit() {

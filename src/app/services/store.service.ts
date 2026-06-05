@@ -1,6 +1,5 @@
-import { Injectable, PLATFORM_ID, Inject } from '@angular/core';
+import { Injectable, signal, computed, effect, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, map } from 'rxjs';
 import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal } from '../models/budget.models';
 
 const INITIAL_BUDGETS: Budget[] = [
@@ -20,21 +19,34 @@ const INITIAL_SAVINGS_GOALS: SavingsGoal[] = [
   providedIn: 'root'
 })
 export class StoreService {
-  private state$: BehaviorSubject<AppState>;
+  private platformId = inject(PLATFORM_ID);
+  
+  private stateSignal = signal<AppState>(this.loadInitialState());
 
-  constructor(@Inject(PLATFORM_ID) private platformId: Object) {
-    this.state$ = new BehaviorSubject<AppState>(this.loadInitialState());
+  readonly state = this.stateSignal.asReadonly();
+  readonly transactions = computed(() => this.stateSignal().transactions);
+  readonly budgets = computed(() => this.stateSignal().budgets);
+  readonly savingsGoals = computed(() => this.stateSignal().savingsGoals);
+  readonly theme = computed(() => this.stateSignal().theme);
+  readonly user = computed(() => this.stateSignal().user);
+  readonly summary = computed(() => this.calculateSummary(this.stateSignal()));
+  
+  readonly expenseCategories = signal<string[]>(['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']);
+  readonly incomeCategories = signal<string[]>(['Salary', 'Freelance', 'Investments', 'Other']);
 
+  constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      this.state$.subscribe(state => {
+      effect(() => {
+        const state = this.stateSignal();
         localStorage.setItem('transactions', JSON.stringify(state.transactions));
         localStorage.setItem('budgets', JSON.stringify(state.budgets));
         localStorage.setItem('savingsGoals', JSON.stringify(state.savingsGoals));
+        localStorage.setItem('user', JSON.stringify(state.user));
         localStorage.setItem('theme', state.theme);
         this.applyTheme(state.theme);
       });
       // Apply initial theme
-      this.applyTheme(this.state$.value.theme);
+      this.applyTheme(this.stateSignal().theme);
     }
   }
 
@@ -47,10 +59,10 @@ export class StoreService {
           budgets: JSON.parse(localStorage.getItem('budgets') || JSON.stringify(INITIAL_BUDGETS)),
           savingsGoals: JSON.parse(localStorage.getItem('savingsGoals') || JSON.stringify(INITIAL_SAVINGS_GOALS)),
           theme: localStorage.getItem('theme') || 'dark',
-          user: {
+          user: JSON.parse(localStorage.getItem('user') || JSON.stringify({
             name: 'User',
             balance: 24500
-          }
+          }))
         };
       } catch (e) {
         console.error('Error loading state from localStorage', e);
@@ -66,14 +78,6 @@ export class StoreService {
     };
   }
 
-  getState() {
-    return this.state$.asObservable();
-  }
-
-  getCurrentState() {
-    return this.state$.value;
-  }
-
   private applyTheme(theme: string) {
     if (isPlatformBrowser(this.platformId)) {
       document.body.className = `theme-${theme}`;
@@ -87,22 +91,22 @@ export class StoreService {
   // Savings Goals Management
   addSavingsGoal(goal: Omit<SavingsGoal, 'id'>) {
     const id = Date.now();
-    const savingsGoals = [...this.state$.value.savingsGoals, { ...goal, id }];
+    const savingsGoals = [...this.stateSignal().savingsGoals, { ...goal, id }];
     this.updateState({ savingsGoals });
   }
 
   updateSavingsGoal(goal: SavingsGoal) {
-    const savingsGoals = this.state$.value.savingsGoals.map(g => g.id === goal.id ? goal : g);
+    const savingsGoals = this.stateSignal().savingsGoals.map(g => g.id === goal.id ? goal : g);
     this.updateState({ savingsGoals });
   }
 
   deleteSavingsGoal(id: number) {
-    const savingsGoals = this.state$.value.savingsGoals.filter(g => g.id !== id);
+    const savingsGoals = this.stateSignal().savingsGoals.filter(g => g.id !== id);
     this.updateState({ savingsGoals });
   }
 
   addToSavingsGoal(id: number, amount: number) {
-    const savingsGoals = this.state$.value.savingsGoals.map(g => {
+    const savingsGoals = this.stateSignal().savingsGoals.map(g => {
       if (g.id === id) {
         return { ...g, currentAmount: g.currentAmount + amount };
       }
@@ -112,17 +116,17 @@ export class StoreService {
   }
 
   addTransaction(transaction: Transaction) {
-    const transactions = [transaction, ...this.state$.value.transactions];
+    const transactions = [transaction, ...this.stateSignal().transactions];
     this.updateState({ transactions });
   }
 
   deleteTransaction(id: number) {
-    const transactions = this.state$.value.transactions.filter(t => t.id !== id);
+    const transactions = this.stateSignal().transactions.filter(t => t.id !== id);
     this.updateState({ transactions });
   }
 
   setBudget(category: string, amount: number) {
-    const budgets = [...this.state$.value.budgets];
+    const budgets = [...this.stateSignal().budgets];
     const index = budgets.findIndex(b => b.category === category);
     if (index > -1) {
       budgets[index] = { category, amount };
@@ -134,7 +138,7 @@ export class StoreService {
 
   updateProfile(userData: Partial<UserProfile>) {
     this.updateState({
-      user: { ...this.state$.value.user, ...userData }
+      user: { ...this.stateSignal().user, ...userData }
     });
   }
 
@@ -146,7 +150,7 @@ export class StoreService {
   }
 
   private updateState(newState: Partial<AppState>) {
-    this.state$.next({ ...this.state$.value, ...newState });
+    this.stateSignal.update(state => ({ ...state, ...newState }));
   }
 
   private calculateSummary(state: AppState): Summary {
@@ -164,15 +168,5 @@ export class StoreService {
       balance: state.user.balance + income - expense,
       profit: income - expense
     };
-  }
-
-  getSummary$() {
-    return this.state$.pipe(
-      map(state => this.calculateSummary(state))
-    );
-  }
-
-  getSummary() {
-    return this.calculateSummary(this.state$.value);
   }
 }

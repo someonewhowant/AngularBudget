@@ -1,87 +1,59 @@
-import { Component, ElementRef, Input, OnChanges, OnDestroy, OnInit, ViewChild, SimpleChanges } from '@angular/core';
-import { Chart, registerables, ChartConfiguration, ChartType } from 'chart.js';
+import { Component, ElementRef, viewChild, input, effect, ChangeDetectionStrategy } from '@angular/core';
+import { Chart, registerables, ChartType } from 'chart.js';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-base-chart',
-  standalone: true,
-  template: `
-    <div class="chart-wrapper" style="position: relative; height: 300px; width: 100%;">
-      <canvas #chartCanvas></canvas>
-    </div>
-  `,
-  styles: [`
-    .chart-wrapper {
-      position: relative;
-      height: 300px;
-      width: 100%;
-    }
-  `]
+  templateUrl: './base-chart.html',
+  styleUrl: './base-chart.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class BaseChartComponent implements OnInit, OnChanges, OnDestroy {
-  @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
+export class BaseChartComponent {
+  chartCanvas = viewChild.required<ElementRef<HTMLCanvasElement>>('chartCanvas');
   
-  @Input() type: ChartType = 'line';
-  @Input() data: any = { labels: [], datasets: [] };
-  @Input() options: any = {};
-  @Input() id: string = `chart-${Math.random()}`;
+  type = input<ChartType>('line');
+  data = input<any>({ labels: [], datasets: [] });
+  options = input<any>({});
+  id = input<string>(`chart-${Math.random()}`);
 
   private chart: Chart | null = null;
 
-  ngOnInit() {
-    this.initChart();
-  }
+  constructor() {
+    effect((onCleanup) => {
+      const canvasEl = this.chartCanvas();
+      if (!canvasEl) return;
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (this.chart) {
-      if (changes['data']) {
-        this.chart.data.labels = this.data.labels;
-        
-        if (this.data.datasets) {
-          this.data.datasets.forEach((newDataset: any, i: number) => {
-            if (this.chart!.data.datasets[i]) {
-              Object.assign(this.chart!.data.datasets[i], newDataset);
-            } else {
-              this.chart!.data.datasets[i] = newDataset;
-            }
-          });
-          
-          if (this.chart.data.datasets.length > this.data.datasets.length) {
-            this.chart.data.datasets.splice(this.data.datasets.length);
-          }
+      const ctx = canvasEl.nativeElement.getContext('2d');
+      if (!ctx) return;
+
+      const currentType = this.type();
+      const currentData = this.data();
+      const currentOptions = this.options();
+
+      if (this.chart) {
+        this.chart.destroy();
+      }
+
+      this.chart = new Chart(ctx, {
+        type: currentType,
+        data: currentData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          animation: {
+            duration: 750
+          },
+          ...currentOptions
         }
-      }
+      });
 
-      if (changes['options']) {
-        Object.assign(this.chart.options, this.options);
-      }
-      
-      this.chart.update('none');
-    }
-  }
-
-  private initChart() {
-    const ctx = this.chartCanvas.nativeElement.getContext('2d');
-    if (!ctx) return;
-
-    this.chart = new Chart(ctx, {
-      type: this.type,
-      data: this.data,
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-          duration: 750
-        },
-        ...this.options
-      }
+      onCleanup(() => {
+        if (this.chart) {
+          this.chart.destroy();
+          this.chart = null;
+        }
+      });
     });
-  }
-
-  ngOnDestroy() {
-    if (this.chart) {
-      this.chart.destroy();
-    }
   }
 }

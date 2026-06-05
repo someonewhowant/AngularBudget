@@ -1,26 +1,23 @@
-import { Component, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Component, inject, signal, ChangeDetectionStrategy } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { SavingsGoal } from '../../models/budget.models';
-import { map } from 'rxjs';
 
 @Component({
   selector: 'app-savings',
-  standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, SidebarComponent],
+  imports: [ReactiveFormsModule, SidebarComponent],
   templateUrl: './savings.html',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class SavingsComponent implements OnInit {
+export class SavingsComponent {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
 
-  state$ = this.store.getState();
-  savingsGoals$ = this.state$.pipe(map(s => s.savingsGoals));
+  savingsGoals = this.store.savingsGoals;
 
-  isModalOpen = false;
-  editingGoal: SavingsGoal | null = null;
+  isModalOpen = signal(false);
+  editingGoal = signal<SavingsGoal | null>(null);
 
   goalForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
@@ -29,16 +26,14 @@ export class SavingsComponent implements OnInit {
     category: ['General', Validators.required]
   });
 
-  ngOnInit(): void { }
-
   toggleModal(goal?: SavingsGoal) {
-    this.isModalOpen = !this.isModalOpen;
-    if (this.isModalOpen) {
+    this.isModalOpen.update(open => !open);
+    if (this.isModalOpen()) {
       if (goal) {
-        this.editingGoal = goal;
+        this.editingGoal.set(goal);
         this.goalForm.patchValue(goal);
       } else {
-        this.editingGoal = null;
+        this.editingGoal.set(null);
         this.goalForm.reset({
           name: '',
           targetAmount: 0,
@@ -52,8 +47,9 @@ export class SavingsComponent implements OnInit {
   handleGoalSubmit() {
     if (this.goalForm.valid) {
       const goalData = this.goalForm.value;
-      if (this.editingGoal) {
-        this.store.updateSavingsGoal({ ...this.editingGoal, ...goalData });
+      const currentEditingGoal = this.editingGoal();
+      if (currentEditingGoal) {
+        this.store.updateSavingsGoal({ ...currentEditingGoal, ...goalData });
       } else {
         this.store.addSavingsGoal(goalData);
       }

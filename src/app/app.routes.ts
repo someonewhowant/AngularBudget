@@ -1,17 +1,11 @@
 import { Routes } from '@angular/router';
-import { DashboardComponent } from './components/dashboard/dashboard';
-import { TransactionsComponent } from './components/transactions/transactions';
-import { BudgetComponent } from './components/budget/budget';
-import { SettingsComponent } from './components/settings/settings';
-import { SavingsComponent } from './components/savings/savings';
-import { ReportsComponent } from './components/reports/reports';
 
 export const routes: Routes = [
-  { path: '', component: DashboardComponent },
-  { path: 'transactions', component: TransactionsComponent },
-  { path: 'budget', component: BudgetComponent },
-  { path: 'savings', component: SavingsComponent },
-  { path: 'settings', component: SettingsComponent },
-  { path: 'reports', component: ReportsComponent },
+  { path: '', loadComponent: () => import('./components/dashboard/dashboard').then(m => m.DashboardComponent) },
+  { path: 'transactions', loadComponent: () => import('./components/transactions/transactions').then(m => m.TransactionsComponent) },
+  { path: 'budget', loadComponent: () => import('./components/budget/budget').then(m => m.BudgetComponent) },
+  { path: 'savings', loadComponent: () => import('./components/savings/savings').then(m => m.SavingsComponent) },
+  { path: 'settings', loadComponent: () => import('./components/settings/settings').then(m => m.SettingsComponent) },
+  { path: 'reports', loadComponent: () => import('./components/reports/reports').then(m => m.ReportsComponent) },
   { path: '**', redirectTo: '' }
 ];
