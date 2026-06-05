@@ -27,12 +27,20 @@ export interface SavingsGoal {
   deadline?: string;
 }
 
+export interface Account {
+  id: string;
+  name: string;
+  type: 'checking' | 'savings' | 'credit' | 'cash' | 'other';
+  initialBalance: number;
+}
+
 export interface AppState {
   transactions: Transaction[];
   budgets: Budget[];
   theme: string;
   savingsGoals: SavingsGoal[];
   user: UserProfile;
+  accounts?: Account[];
 }
 
 export interface Summary {

@@ -100,7 +100,7 @@
           <div class="form-group">
             <label>Category</label>
             <select formControlName="category" class="form-control">
-              @for (c of ['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']; track c) {
+              @for (c of expenseCategories(); track c) {
                 <option [value]="c">{{c}}</option>
               }
             </select>

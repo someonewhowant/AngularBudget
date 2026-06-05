@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
@@ -14,6 +14,10 @@ export class SettingsComponent implements OnInit {
   private fb = inject(FormBuilder);
   
   state = this.store.state;
+
+  isConfirmResetOpen = signal(false);
+  isSuccessAlertOpen = signal(false);
+  alertMessage = signal('');
   
   profileForm: FormGroup = this.fb.group({
     name: ['', Validators.required]
@@ -35,7 +39,8 @@ export class SettingsComponent implements OnInit {
   handleProfileSubmit() {
     if (this.profileForm.valid) {
       this.store.updateProfile({ name: this.profileForm.value.name });
-      alert('Profile updated successfully!');
+      this.alertMessage.set('Profile updated successfully!');
+      this.isSuccessAlertOpen.set(true);
     }
   }
 
@@ -43,9 +48,22 @@ export class SettingsComponent implements OnInit {
     this.store.setTheme(themeId);
   }
 
-  handleReset() {
-    if (confirm('Are you sure you want to delete all your data? This action cannot be undone.')) {
-      this.store.resetData();
-    }
+  confirmReset() {
+    this.isConfirmResetOpen.set(true);
+  }
+
+  closeConfirmReset() {
+    this.isConfirmResetOpen.set(false);
+  }
+
+  executeReset() {
+    this.store.resetData();
+    this.closeConfirmReset();
+    this.alertMessage.set('All application data has been reset.');
+    this.isSuccessAlertOpen.set(true);
+  }
+
+  closeAlert() {
+    this.isSuccessAlertOpen.set(false);
   }
 }

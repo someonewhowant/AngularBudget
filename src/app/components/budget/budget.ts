@@ -63,15 +63,23 @@ export class BudgetComponent {
     };
   });
 
+  expenseCategories = this.store.expenseCategories;
+
   isModalOpen = signal(false);
   
   budgetForm: FormGroup = this.fb.group({
-    category: ['Food', Validators.required],
+    category: [this.expenseCategories()[0] || 'Food', Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]]
   });
 
   toggleModal() {
     this.isModalOpen.update(open => !open);
+    if (!this.isModalOpen()) {
+      this.budgetForm.reset({
+        category: this.expenseCategories()[0] || 'Food',
+        amount: 0
+      });
+    }
   }
 
   handleBudgetSubmit() {

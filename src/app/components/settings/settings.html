@@ -40,11 +40,38 @@
           <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
             This action will clear all your transaction history and budget settings. This cannot be undone.
           </p>
-          <button (click)="handleReset()" style="width: 100%; padding: 14px; background: #ff4d4d; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          <button (click)="confirmReset()" style="width: 100%; padding: 14px; background: #ff4d4d; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
             Reset All Data
           </button>
         </div>
       </div>
     }
   </main>
+</div>
+
+<!-- Confirm Reset Modal -->
+<div class="modal-overlay" [class.active]="isConfirmResetOpen()">
+  <div class="modal-container" style="max-width: 400px; text-align: center;">
+    <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
+      <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff4d4d; filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.4));"></i>
+    </div>
+    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">Reset All Data?</h3>
+    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">Are you sure you want to delete all your data? This action cannot be undone and will reset the app state.</p>
+    <div style="display: flex; gap: 15px;">
+      <button type="button" class="btn-primary" (click)="closeConfirmReset()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1;">Cancel</button>
+      <button type="button" class="btn-primary" (click)="executeReset()" style="background: #ff4d4d; flex: 1;">Reset Data</button>
+    </div>
+  </div>
+</div>
+
+<!-- Success Alert Modal -->
+<div class="modal-overlay" [class.active]="isSuccessAlertOpen()">
+  <div class="modal-container" style="max-width: 400px; text-align: center;">
+    <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
+      <i class="fas fa-check-circle" style="font-size: 3rem; color: #4eff8a; filter: drop-shadow(0 0 10px rgba(78, 255, 138, 0.4));"></i>
+    </div>
+    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">Success</h3>
+    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">{{alertMessage()}}</p>
+    <button type="button" class="btn-primary" (click)="closeAlert()" style="background: var(--primary-blue); width: 100%;">OK</button>
+  </div>
 </div>

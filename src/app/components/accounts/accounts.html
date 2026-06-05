@@ -1,0 +1,137 @@
+<div class="app-container">
+  <app-sidebar></app-sidebar>
+  <main class="main-content">
+    <header class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h1>My Accounts & Wallets</h1>
+        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Manage your bank accounts, credit cards, cash, and track their individual balances.</p>
+      </div>
+      <button (click)="toggleModal()" class="btn-primary"
+        style="width: auto; padding: 12px 24px; display: flex; align-items: center; gap: 10px;">
+        <i class="fas fa-plus"></i>
+        Add Account
+      </button>
+    </header>
+
+    <div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));">
+      @for (acc of accountsWithBalance(); track acc.id) {
+        <div class="glass-card" style="display: flex; flex-direction: column; gap: 20px; position: relative; overflow: hidden;">
+          <!-- Card Glass Accent background depending on type -->
+          <div style="position: absolute; top: -50px; right: -50px; width: 120px; height: 120px; border-radius: 50%; opacity: 0.15; filter: blur(20px);"
+               [style.background]="acc.type === 'credit' ? 'var(--accent-purple)' : 'var(--primary-blue)'"></div>
+               
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+              <div style="display: flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass);">
+                <i class="fas {{getAccountTypeIcon(acc.type)}}" style="font-size: 1.2rem; color: var(--primary-blue);"></i>
+              </div>
+              <div>
+                <h3 style="margin: 0; font-size: 1.25rem;">{{acc.name}}</h3>
+                <span style="font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); letter-spacing: 0.5px;">{{acc.type}}</span>
+              </div>
+            </div>
+            <div style="display: flex; gap: 10px; z-index: 2;">
+              <button (click)="toggleModal(acc)"
+                style="background: none; border: none; color: var(--text-dim); cursor: pointer; transition: color 0.2s;"
+                onmouseover="this.style.color='var(--primary-blue)'"
+                onmouseout="this.style.color='var(--text-dim)'">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button (click)="confirmDeleteAccount(acc.id)"
+                style="background: none; border: none; color: #ff4d4d; cursor: pointer; opacity: 0.8; transition: opacity 0.2s;"
+                onmouseover="this.style.opacity='1'"
+                onmouseout="this.style.opacity='0.8'">
+                <i class="fas fa-trash"></i>
+              </button>
+            </div>
+          </div>
+
+          <div style="margin: 10px 0 5px 0;">
+            <div style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 5px;">Current Balance</div>
+            <div style="font-size: 2.2rem; font-weight: 800; display: flex; align-items: baseline; gap: 5px;"
+                 [class.blue-glow]="acc.currentBalance >= 0"
+                 [class.purple-glow]="acc.currentBalance < 0"
+                 [style.color]="acc.currentBalance >= 0 ? 'var(--primary-blue)' : '#ff4d4d'">
+              ${{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid rgba(255,255,255,0.05); padding-top: 15px; display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-dim);">
+            <span>Initial: ${{acc.initialBalance.toLocaleString()}}</span>
+            <span>Type: <span style="text-transform: capitalize;">{{acc.type}}</span></span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Empty State -->
+    @if (accounts().length === 0) {
+      <div class="glass-card" style="text-align: center; padding: 60px 20px; display: flex; flex-direction: column; align-items: center; gap: 20px; border-style: dashed;">
+        <i class="fas fa-wallet" style="font-size: 4rem; color: var(--text-dim); opacity: 0.4;"></i>
+        <div>
+          <h3>No wallets or bank accounts found</h3>
+          <p style="color: var(--text-dim); max-width: 400px; margin: 8px auto 0 auto;">Create an account to track your separate cash, cards, and deposits.</p>
+        </div>
+        <button (click)="toggleModal()" class="btn-primary" style="width: auto; padding: 12px 24px;">
+          Create First Account
+        </button>
+      </div>
+    }
+  </main>
+</div>
+
+<!-- Add/Edit Account Modal -->
+<div class="modal-overlay" [class.active]="isModalOpen()">
+  <div class="modal-container" style="max-width: 500px;">
+    <div class="modal-header">
+      <h2>{{editingAccount() ? 'Edit Account' : 'Add New Account'}}</h2>
+      <button (click)="toggleModal()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
+    </div>
+    <form [formGroup]="accountForm" (ngSubmit)="handleAccountSubmit()">
+      <div class="form-group">
+        <label>Account Name</label>
+        <input type="text" formControlName="name" class="form-control" placeholder="e.g. Chase Checking, Cash Wallet">
+      </div>
+      
+      <div class="form-group">
+        <label>Account Type</label>
+        <select formControlName="type" class="form-control">
+          <option value="checking">Checking / Bank Account</option>
+          <option value="savings">Savings Account</option>
+          <option value="credit">Credit Card</option>
+          <option value="cash">Cash / Physical Wallet</option>
+          <option value="other">Other / Digital Wallet</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Initial Balance ($)</label>
+        <input type="number" formControlName="initialBalance" class="form-control" min="0">
+      </div>
+
+      <div style="display: flex; gap: 15px; margin-top: 30px;">
+        <button type="button" (click)="toggleModal()" class="btn-secondary" style="flex: 1; padding: 14px;">Cancel</button>
+        <button type="submit" [disabled]="accountForm.invalid" class="btn-primary" style="flex: 1; padding: 14px;">
+          {{editingAccount() ? 'Save Changes' : 'Create Account'}}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Confirm Delete Modal -->
+<div class="modal-overlay" [class.active]="isConfirmDeleteOpen()">
+  <div class="modal-container" style="max-width: 400px; text-align: center;">
+    <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
+      <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff4d4d; filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.4));"></i>
+    </div>
+    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">Delete Account?</h3>
+    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">
+      Are you sure you want to delete this account? <b>Warning:</b> This will also delete all transactions associated with this account. This action cannot be undone.
+    </p>
+    <div style="display: flex; gap: 15px;">
+      <button (click)="closeConfirmDelete()" class="btn-secondary" style="flex: 1; padding: 12px;">Cancel</button>
+      <button (click)="executeDeleteAccount()" class="btn-primary" style="flex: 1; padding: 12px; background: #ff4d4d;">Delete</button>
+    </div>
+  </div>
+</div>

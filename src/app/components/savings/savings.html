@@ -24,7 +24,7 @@
             <div style="display: flex; gap: 10px;">
               <button (click)="toggleModal(goal)"
                 style="background: none; border: none; color: var(--text-dim); cursor: pointer;"><i class="fas fa-edit"></i></button>
-              <button (click)="deleteGoal(goal.id)"
+              <button (click)="confirmDeleteGoal(goal.id)"
                 style="background: none; border: none; color: #ff4d4d; cursor: pointer;"><i class="fas fa-trash"></i></button>
             </div>
           </div>
@@ -50,7 +50,7 @@
             </div>
           </div>
 
-          <button (click)="addFunds(goal)" class="btn-primary"
+          <button (click)="openAddFunds(goal)" class="btn-primary"
             style="margin-top: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main);">
             Add Funds
           </button>
@@ -104,6 +104,47 @@
           {{editingGoal() ? 'Update Goal' : 'Create Goal'}}
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- Add Funds Modal -->
+  <div class="modal-overlay" [class.active]="isAddFundsOpen()">
+    <div class="modal-container" style="max-width: 400px;">
+      <div class="modal-header">
+        <h2>Add Funds</h2>
+        <button class="modal-close" (click)="closeAddFunds()">×</button>
+      </div>
+      @if (activeGoal(); as goal) {
+        <div style="margin-bottom: 20px;">
+          <p style="font-size: 0.9rem; color: var(--text-dim);">Adding savings to goal:</p>
+          <h3 style="margin-top: 5px;">{{goal.name}}</h3>
+        </div>
+        <form (ngSubmit)="submitAddFunds()">
+          <div class="form-group">
+            <label>Amount to Add ($)</label>
+            <input type="number" min="0.01" step="0.01" [value]="fundsAmount() || ''" (input)="handleFundsInput($event)" class="form-control" placeholder="Enter amount..." autofocus>
+          </div>
+          <div style="display: flex; gap: 15px; margin-top: 25px;">
+            <button type="button" class="btn-primary" (click)="closeAddFunds()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1;">Cancel</button>
+            <button type="submit" class="btn-primary" [disabled]="fundsAmount() <= 0" style="background: var(--accent-purple); flex: 1;">Add Funds</button>
+          </div>
+        </form>
+      }
+    </div>
+  </div>
+
+  <!-- Confirm Delete Modal -->
+  <div class="modal-overlay" [class.active]="isConfirmDeleteOpen()">
+    <div class="modal-container" style="max-width: 400px; text-align: center;">
+      <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
+        <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff4d4d; filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.4));"></i>
+      </div>
+      <h3 style="margin-bottom: 12px; font-size: 1.4rem;">Delete Savings Goal?</h3>
+      <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">Are you sure you want to delete this savings goal? This action cannot be undone.</p>
+      <div style="display: flex; gap: 15px;">
+        <button type="button" class="btn-primary" (click)="closeConfirmDelete()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1;">Cancel</button>
+        <button type="button" class="btn-primary" (click)="executeDeleteGoal()" style="background: #ff4d4d; flex: 1;">Delete</button>
+      </div>
     </div>
   </div>
 </div>

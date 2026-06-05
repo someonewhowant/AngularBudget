@@ -89,6 +89,24 @@
         </div>
 
         <div class="glass-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Accounts</h3>
+            <a routerLink="/accounts" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem;">Manage</a>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            @for (acc of accounts().slice(0, 3); track acc.id) {
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+                <span style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
+                  <i class="fas" [class]="acc.type === 'credit' ? 'fa-credit-card' : acc.type === 'savings' ? 'fa-piggy-bank' : acc.type === 'cash' ? 'fa-coins' : 'fa-university'" style="color: var(--primary-blue); width: 16px;"></i>
+                  {{acc.name}}
+                </span>
+                <b [style.color]="acc.currentBalance >= 0 ? 'var(--text)' : '#ff4d4d'">${{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</b>
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="glass-card">
           <h3 style="margin-bottom: 20px;">Top Categories</h3>
           <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
             @let topCats = topCategories();

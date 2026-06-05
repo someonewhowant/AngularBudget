@@ -19,6 +19,14 @@ export class SavingsComponent {
   isModalOpen = signal(false);
   editingGoal = signal<SavingsGoal | null>(null);
 
+  // Custom modl signals
+  isAddFundsOpen = signal(false);
+  activeGoal = signal<SavingsGoal | null>(null);
+  fundsAmount = signal<number>(0);
+
+  isConfirmDeleteOpen = signal(false);
+  goalToDelete = signal<number | null>(null);
+
   goalForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     targetAmount: [0, [Validators.required, Validators.min(1)]],
@@ -57,17 +65,47 @@ export class SavingsComponent {
     }
   }
 
-  deleteGoal(id: number) {
-    if (confirm('Are you sure you want to delete this savings goal?')) {
+  confirmDeleteGoal(id: number) {
+    this.goalToDelete.set(id);
+    this.isConfirmDeleteOpen.set(true);
+  }
+
+  closeConfirmDelete() {
+    this.isConfirmDeleteOpen.set(false);
+    this.goalToDelete.set(null);
+  }
+
+  executeDeleteGoal() {
+    const id = this.goalToDelete();
+    if (id !== null) {
       this.store.deleteSavingsGoal(id);
+      this.closeConfirmDelete();
     }
   }
 
-  addFunds(goal: SavingsGoal) {
-    const amount = prompt(`How much would you like to add to "${goal.name}"?`);
-    if (amount && !isNaN(parseFloat(amount))) {
-      this.store.addToSavingsGoal(goal.id, parseFloat(amount));
+  openAddFunds(goal: SavingsGoal) {
+    this.activeGoal.set(goal);
+    this.fundsAmount.set(0);
+    this.isAddFundsOpen.set(true);
+  }
+
+  closeAddFunds() {
+    this.isAddFundsOpen.set(false);
+    this.activeGoal.set(null);
+  }
+
+  submitAddFunds() {
+    const goal = this.activeGoal();
+    const amount = this.fundsAmount();
+    if (goal && amount > 0) {
+      this.store.addToSavingsGoal(goal.id, amount);
+      this.closeAddFunds();
     }
+  }
+
+  handleFundsInput(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.fundsAmount.set(parseFloat(input.value) || 0);
   }
 
   getProgress(goal: SavingsGoal): number {
