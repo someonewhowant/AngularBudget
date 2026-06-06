@@ -35,6 +35,19 @@ export interface Account {
   initialBalance: number;
 }
 
+export interface RecurringTransaction {
+  id: number;
+  name: string;
+  amount: number;
+  category: string;
+  account: string;
+  type: 'income' | 'expense';
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  startDate: string;
+  nextDueDate: string;
+  isActive: boolean;
+}
+
 export interface AppState {
   transactions: Transaction[];
   budgets: Budget[];
@@ -42,6 +55,7 @@ export interface AppState {
   savingsGoals: SavingsGoal[];
   user: UserProfile;
   accounts?: Account[];
+  recurringTransactions?: RecurringTransaction[];
 }
 
 export interface Summary {

@@ -31,21 +31,70 @@ export class TransactionsComponent {
 
   searchQuery = signal('');
   filterCategory = signal('all');
+  filterAccount = signal('all');
+  filterType = signal('all');
+  startDate = signal('');
+  endDate = signal('');
+  sortBy = signal('date-desc');
+  isAdvancedOpen = signal(false);
+
+  activeFilterCount = computed(() => {
+    let count = 0;
+    if (this.filterAccount() !== 'all') count++;
+    if (this.filterType() !== 'all') count++;
+    if (this.startDate()) count++;
+    if (this.endDate()) count++;
+    return count;
+  });
 
   isConfirmDeleteOpen = signal(false);
   transactionToDelete = signal<number | null>(null);
+  editingTransaction = signal<Transaction | null>(null);
 
   filteredTransactions = computed(() => {
-    const transactions = this.store.transactions();
+    let transactions = [...this.store.transactions()];
     const query = this.searchQuery().toLowerCase();
     const category = this.filterCategory();
+    const account = this.filterAccount();
+    const type = this.filterType();
+    const start = this.startDate();
+    const end = this.endDate();
 
-    return transactions.filter(t => {
+    // 1. Filter
+    transactions = transactions.filter(t => {
       const matchesSearch = t.vendor.toLowerCase().includes(query) || 
                             t.category.toLowerCase().includes(query);
       const matchesCategory = category === 'all' || t.category === category;
-      return matchesSearch && matchesCategory;
+      const matchesAccount = account === 'all' || t.account === account;
+      const matchesType = type === 'all' || t.type === type;
+      
+      let matchesDate = true;
+      if (start) {
+        matchesDate = matchesDate && t.date >= start;
+      }
+      if (end) {
+        matchesDate = matchesDate && t.date <= end;
+      }
+      
+      return matchesSearch && matchesCategory && matchesAccount && matchesType && matchesDate;
     });
+
+    // 2. Sort
+    const sort = this.sortBy();
+    transactions.sort((a, b) => {
+      if (sort === 'date-desc') {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      } else if (sort === 'date-asc') {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      } else if (sort === 'amount-desc') {
+        return Number(b.amount) - Number(a.amount);
+      } else if (sort === 'amount-asc') {
+        return Number(a.amount) - Number(b.amount);
+      }
+      return 0;
+    });
+
+    return transactions;
   });
 
   progress = computed(() => {
@@ -85,29 +134,91 @@ export class TransactionsComponent {
     this.filterCategory.set(select.value);
   }
 
-  toggleModal() {
+  handleFilterAccount(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.filterAccount.set(select.value);
+  }
+
+  handleFilterType(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.filterType.set(select.value);
+  }
+
+  handleStartDate(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.startDate.set(input.value);
+  }
+
+  handleEndDate(event: Event) {
+    const input = event.target as HTMLInputElement;
+    this.endDate.set(input.value);
+  }
+
+  handleSortBy(event: Event) {
+    const select = event.target as HTMLSelectElement;
+    this.sortBy.set(select.value);
+  }
+
+  clearFilters() {
+    this.filterCategory.set('all');
+    this.filterAccount.set('all');
+    this.filterType.set('all');
+    this.startDate.set('');
+    this.endDate.set('');
+    this.sortBy.set('date-desc');
+    this.searchQuery.set('');
+  }
+
+  toggleModal(transaction?: Transaction) {
     this.isModalOpen.update(open => !open);
-    if (!this.isModalOpen()) {
-      this.transactionForm.reset({
-        category: this.expenseCategories()[0] || 'Food',
-        account: this.accounts()[0]?.id || 'visa-card',
-        date: new Date().toISOString().split('T')[0],
-        type: 'expense'
-      });
+    if (this.isModalOpen()) {
+      if (transaction) {
+        this.editingTransaction.set(transaction);
+        this.transactionForm.patchValue({
+          vendor: transaction.vendor,
+          category: transaction.category,
+          account: transaction.account,
+          date: transaction.date,
+          amount: transaction.amount,
+          type: transaction.type
+        });
+      } else {
+        this.editingTransaction.set(null);
+        this.transactionForm.reset({
+          vendor: '',
+          category: this.expenseCategories()[0] || 'Food',
+          account: this.accounts()[0]?.id || 'visa-card',
+          date: new Date().toISOString().split('T')[0],
+          amount: 0,
+          type: 'expense'
+        });
+      }
+    } else {
+      this.editingTransaction.set(null);
     }
   }
 
   handleSubmit() {
     if (this.transactionForm.valid) {
       const formValue = this.transactionForm.value;
-      const newTransaction: Transaction = {
-        id: Date.now(),
-        ...formValue
-      };
+      const editing = this.editingTransaction();
       
-      this.store.addTransaction(newTransaction);
+      if (editing) {
+        const updatedTransaction: Transaction = {
+          ...editing,
+          ...formValue
+        };
+        this.store.updateTransaction(updatedTransaction);
+        this.toastService.show('Transaction updated successfully!', 'success');
+      } else {
+        const newTransaction: Transaction = {
+          id: Date.now(),
+          ...formValue
+        };
+        this.store.addTransaction(newTransaction);
+        this.toastService.show('Transaction added successfully!', 'success');
+      }
       this.toggleModal();
-      this.toastService.show('Transaction added successfully!', 'success');
     }
   }
 

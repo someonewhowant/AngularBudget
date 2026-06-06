@@ -138,15 +138,15 @@ export class SavingsComponent {
     const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
     
     if (goal.currentAmount >= goal.targetAmount) {
-      return { status: 'completed', text: 'Goal achieved! 🎉', alert: false };
+      return { status: 'completed', text: 'Goal achieved! 🎉', alert: false, monthlyRate: 0, weeklyRate: 0 };
     }
     
     if (daysDiff < 0) {
-      return { status: 'overdue', text: 'Deadline passed', alert: true };
+      return { status: 'overdue', text: 'Deadline passed', alert: true, monthlyRate: 0, weeklyRate: 0 };
     }
     
     if (daysDiff === 0) {
-      return { status: 'due-today', text: 'Due today! ⚠️', alert: true };
+      return { status: 'due-today', text: 'Due today! ⚠️', alert: true, monthlyRate: 0, weeklyRate: 0 };
     }
     
     const needed = goal.targetAmount - goal.currentAmount;

@@ -14,17 +14,88 @@
       </div>
     </header>
 
-    <div class="glass-card" style="margin-bottom: 24px; display: flex; gap: 15px; align-items: center; padding: 15px 24px;">
-      <div style="flex: 1; position: relative;">
-        <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
-        <input type="text" placeholder="Search vendor or category..." (input)="handleSearch($event)" class="form-control" style="padding-left: 45px;">
+    <div class="glass-card" style="margin-bottom: 24px; padding: 20px;">
+      <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+        <!-- Search -->
+        <div style="flex: 1; min-width: 200px; position: relative;">
+          <i class="fas fa-search" style="position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-dim);"></i>
+          <input type="text" placeholder="Search vendor or category..." [value]="searchQuery()" (input)="handleSearch($event)" class="form-control" style="padding-left: 45px;">
+        </div>
+        
+        <!-- Quick Category Filter -->
+        <select (change)="handleFilter($event)" [value]="filterCategory()" class="form-control" style="width: auto; min-width: 150px;">
+          <option value="all">All Categories</option>
+          @for (c of allCategories(); track c) {
+            <option [value]="c">{{c}}</option>
+          }
+        </select>
+
+        <!-- Quick Sort -->
+        <select (change)="handleSortBy($event)" [value]="sortBy()" class="form-control" style="width: auto; min-width: 150px;">
+          <option value="date-desc">Newest First</option>
+          <option value="date-asc">Oldest First</option>
+          <option value="amount-desc">Highest Amount</option>
+          <option value="amount-asc">Lowest Amount</option>
+        </select>
+
+        <!-- Toggle Advanced Filters -->
+        <button (click)="isAdvancedOpen.set(!isAdvancedOpen())" class="btn-primary" 
+                style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 18px; border-radius: 8px;">
+          <i class="fas fa-sliders-h"></i>
+          <span>Filters</span>
+          @if (activeFilterCount() > 0) {
+            <span style="background: var(--primary-blue); color: white; border-radius: 50%; width: 18px; height: 18px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: bold;">
+              {{activeFilterCount()}}
+            </span>
+          }
+        </button>
       </div>
-      <select (change)="handleFilter($event)" class="form-control" style="width: auto;">
-        <option value="all">All Categories</option>
-        @for (c of allCategories(); track c) {
-          <option [value]="c">{{c}}</option>
-        }
-      </select>
+
+      <!-- Collapsible Advanced Filters Panel -->
+      @if (isAdvancedOpen()) {
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.05); display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px;">
+          <!-- Filter by Wallet/Account -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">Account / Wallet</label>
+            <select (change)="handleFilterAccount($event)" [value]="filterAccount()" class="form-control">
+              <option value="all">All Accounts</option>
+              @for (acc of accounts(); track acc.id) {
+                <option [value]="acc.id">{{acc.name}}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Filter by Type -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">Transaction Type</label>
+            <select (change)="handleFilterType($event)" [value]="filterType()" class="form-control">
+              <option value="all">All Types</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
+          </div>
+
+          <!-- Start Date -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">Start Date</label>
+            <input type="date" [value]="startDate()" (change)="handleStartDate($event)" class="form-control">
+          </div>
+
+          <!-- End Date -->
+          <div>
+            <label style="display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 6px;">End Date</label>
+            <input type="date" [value]="endDate()" (change)="handleEndDate($event)" class="form-control">
+          </div>
+
+          <!-- Clear Filters Button -->
+          <div style="grid-column: 1 / -1; display: flex; justify-content: flex-end; margin-top: 5px;">
+            <button (click)="clearFilters()" class="btn-primary" 
+                    style="background: transparent; border: 1px solid rgba(255, 77, 77, 0.3); color: #ff4d4d; padding: 8px 16px; font-size: 0.85rem; border-radius: 6px; cursor: pointer;">
+              Clear All Filters
+            </button>
+          </div>
+        </div>
+      }
     </div>
 
     <div class="grid" style="grid-template-columns: 2fr 1fr;">
@@ -54,9 +125,14 @@
                     {{ t.amount | transactionAmount: t.type: currencySymbol() }}
                   </td>
                   <td style="padding: 15px 0; text-align: right;">
-                    <button (click)="confirmDeleteTransaction(t.id)" style="background: none; border: none; color: #ff4d4d; cursor: pointer;">
-                      <i class="fas fa-trash"></i>
-                    </button>
+                    <div style="display: flex; justify-content: flex-end; gap: 12px; align-items: center;">
+                      <button (click)="toggleModal(t)" style="background: none; border: none; color: var(--primary-blue); cursor: pointer; padding: 4px; display: inline-flex; align-items: center;" title="Edit">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button (click)="confirmDeleteTransaction(t.id)" style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 4px; display: inline-flex; align-items: center;" title="Delete">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               }
@@ -103,7 +179,7 @@
     <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
       <div class="modal-container">
         <div class="modal-header">
-          <h2>Add Transaction</h2>
+          <h2>{{editingTransaction() ? 'Edit Transaction' : 'Add Transaction'}}</h2>
           <button class="modal-close" (click)="toggleModal()">×</button>
         </div>
         <form [formGroup]="transactionForm" (ngSubmit)="handleSubmit()">
@@ -157,7 +233,7 @@
             </div>
           </div>
           <button type="submit" [disabled]="!transactionForm.valid" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--accent-purple); color: white; cursor: pointer;">
-            Save Transaction
+            {{editingTransaction() ? 'Save Changes' : 'Save Transaction'}}
           </button>
         </form>
       </div>

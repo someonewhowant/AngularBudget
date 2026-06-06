@@ -28,9 +28,11 @@ export class BudgetComponent {
       const spent = transactions
         .filter(t => t.category === b.category && t.type === 'expense')
         .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-      const percent = Math.min((spent / b.amount) * 100, 100);
-      const isOver = spent > b.amount;
-      return { ...b, spent, percent, isOver };
+      const percent = b.amount > 0 ? (spent / b.amount) * 100 : 0;
+      const progressPercent = Math.min(percent, 100);
+      const isNearLimit = percent >= 85 && percent < 100;
+      const isOver = percent >= 100;
+      return { ...b, spent, percent, progressPercent, isNearLimit, isOver };
     });
   });
 

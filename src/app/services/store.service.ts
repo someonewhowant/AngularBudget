@@ -170,6 +170,13 @@ export class StoreService {
     this.updateState({ transactions });
   }
 
+  updateTransaction(updatedTransaction: Transaction) {
+    const transactions = this.stateSignal().transactions.map(t => 
+      t.id === updatedTransaction.id ? updatedTransaction : t
+    );
+    this.updateState({ transactions });
+  }
+
   deleteTransaction(id: number) {
     const transactions = this.stateSignal().transactions.filter(t => t.id !== id);
     this.updateState({ transactions });

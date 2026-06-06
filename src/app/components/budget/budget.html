@@ -19,14 +19,24 @@
           <h3 style="margin-bottom: 25px;">Monthly Budget Overview</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
             @for (b of budgetData(); track b.category) {
-              <div style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 15px;">
-                  <b>{{b.category}}</b>
-                  <span [style.color]="b.isOver ? '#ff4d4d' : 'var(--text-dim)'">{{b.percent.toFixed(0)}}%</span>
+              <div style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px;"
+                   [style.border-color]="b.isOver ? 'rgba(255, 77, 77, 0.3)' : (b.isNearLimit ? 'rgba(255, 159, 67, 0.3)' : 'var(--border-glass)')">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                  <div style="display: flex; align-items: center; gap: 8px;">
+                    <b>{{b.category}}</b>
+                    @if (b.isOver) {
+                      <span style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-exclamation-triangle"></i> OVER</span>
+                    } @else if (b.isNearLimit) {
+                      <span style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-exclamation-circle"></i> 85%+</span>
+                    }
+                  </div>
+                  <span [style.color]="b.isOver ? '#ff4d4d' : (b.isNearLimit ? '#ff9f43' : 'var(--text-dim)')" style="font-weight: 600;">
+                    {{b.percent.toFixed(0)}}%
+                  </span>
                 </div>
                 <div class="progress-bar" style="height: 8px; background: rgba(255,255,255,0.05); margin-bottom: 15px;">
-                  <div class="progress-fill" [style.width.%]="b.percent"
-                    [style.background]="b.isOver ? '#ff4d4d' : 'var(--primary-blue)'"></div>
+                  <div class="progress-fill" [style.width.%]="b.progressPercent"
+                    [style.background]="b.isOver ? '#ff4d4d' : (b.isNearLimit ? '#ff9f43' : 'var(--primary-blue)')"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
                   <span><span style="color: var(--text-dim)">Spent: </span> {{currencySymbol()}}{{b.spent.toLocaleString()}}</span>
