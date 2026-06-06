@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal, Account } from '../models/budget.models';
+import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal, Account, RecurringTransaction } from '../models/budget.models';
 
 const INITIAL_BUDGETS: Budget[] = [
   { category: 'Food', amount: 500 },
@@ -13,6 +13,33 @@ const INITIAL_BUDGETS: Budget[] = [
 const INITIAL_SAVINGS_GOALS: SavingsGoal[] = [
   { id: 1, name: 'New Car', targetAmount: 25000, currentAmount: 5000, category: 'Transport' },
   { id: 2, name: 'Emergency Fund', targetAmount: 10000, currentAmount: 3000, category: 'Security' }
+];
+
+const INITIAL_RECURRING: RecurringTransaction[] = [
+  {
+    id: 1,
+    name: 'Netflix Subscription',
+    amount: 15.99,
+    category: 'Entertainment',
+    account: 'visa-card',
+    type: 'expense',
+    frequency: 'monthly',
+    startDate: '2026-05-01',
+    nextDueDate: '2026-07-01',
+    isActive: true
+  },
+  {
+    id: 2,
+    name: 'Monthly Salary',
+    amount: 3200,
+    category: 'Salary',
+    account: 'direct-deposit',
+    type: 'income',
+    frequency: 'monthly',
+    startDate: '2026-05-01',
+    nextDueDate: '2026-07-01',
+    isActive: true
+  }
 ];
 
 export const DEFAULT_ACCOUNTS: Account[] = [
@@ -46,6 +73,7 @@ export class StoreService {
   readonly theme = computed(() => this.stateSignal().theme);
   readonly user = computed(() => this.stateSignal().user);
   readonly summary = computed(() => this.calculateSummary(this.stateSignal()));
+  readonly recurringTransactions = computed(() => this.stateSignal().recurringTransactions || INITIAL_RECURRING);
 
   readonly expenseCategories = signal<string[]>(['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']);
   readonly incomeCategories = signal<string[]>(['Salary', 'Freelance', 'Investments', 'Other']);
@@ -89,11 +117,68 @@ export class StoreService {
         localStorage.setItem('savingsGoals', JSON.stringify(state.savingsGoals));
         localStorage.setItem('user', JSON.stringify(state.user));
         localStorage.setItem('accounts', JSON.stringify(state.accounts || DEFAULT_ACCOUNTS));
+        localStorage.setItem('recurringTransactions', JSON.stringify(state.recurringTransactions || INITIAL_RECURRING));
         localStorage.setItem('theme', state.theme);
         this.applyTheme(state.theme);
       });
       // Apply initial theme
       this.applyTheme(this.stateSignal().theme);
+      
+      // Automatically process any due recurring payments/income
+      setTimeout(() => this.processDueRecurringTransactions(), 0);
+    }
+  }
+
+  processDueRecurringTransactions() {
+    const state = this.stateSignal();
+    const recurring = state.recurringTransactions || INITIAL_RECURRING;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    let stateUpdated = false;
+    let transactions = [...state.transactions];
+    const updatedRecurring = recurring.map(rt => {
+      if (!rt.isActive) return rt;
+
+      let rtCopy = { ...rt };
+      let nextDue = new Date(rtCopy.nextDueDate);
+      nextDue.setHours(0, 0, 0, 0);
+      
+      while (nextDue <= today) {
+        // Create new transaction record
+        const newTx: Transaction = {
+          id: Date.now() + Math.random(),
+          vendor: rtCopy.name,
+          category: rtCopy.category,
+          account: rtCopy.account,
+          date: rtCopy.nextDueDate,
+          amount: rtCopy.amount,
+          type: rtCopy.type
+        };
+        transactions = [newTx, ...transactions];
+        stateUpdated = true;
+
+        // Calculate next due date based on frequency
+        if (rtCopy.frequency === 'daily') {
+          nextDue.setDate(nextDue.getDate() + 1);
+        } else if (rtCopy.frequency === 'weekly') {
+          nextDue.setDate(nextDue.getDate() + 7);
+        } else if (rtCopy.frequency === 'monthly') {
+          nextDue.setMonth(nextDue.getMonth() + 1);
+        } else if (rtCopy.frequency === 'yearly') {
+          nextDue.setFullYear(nextDue.getFullYear() + 1);
+        }
+        rtCopy.nextDueDate = nextDue.toISOString().split('T')[0];
+      }
+
+      return rtCopy;
+    });
+
+    if (stateUpdated) {
+      this.updateState({
+        transactions,
+        recurringTransactions: updatedRecurring
+      });
     }
   }
 
@@ -111,7 +196,8 @@ export class StoreService {
             balance: 24500,
             currency: 'USD'
           })),
-          accounts: JSON.parse(localStorage.getItem('accounts') || JSON.stringify(DEFAULT_ACCOUNTS))
+          accounts: JSON.parse(localStorage.getItem('accounts') || JSON.stringify(DEFAULT_ACCOUNTS)),
+          recurringTransactions: JSON.parse(localStorage.getItem('recurringTransactions') || JSON.stringify(INITIAL_RECURRING))
         };
       } catch (e) {
         console.error('Error loading state from localStorage', e);
@@ -124,7 +210,8 @@ export class StoreService {
       savingsGoals: INITIAL_SAVINGS_GOALS,
       theme: 'dark',
       user: { name: 'User', balance: 24500, currency: 'USD' },
-      accounts: DEFAULT_ACCOUNTS
+      accounts: DEFAULT_ACCOUNTS,
+      recurringTransactions: INITIAL_RECURRING
     };
   }
 
@@ -180,6 +267,30 @@ export class StoreService {
   deleteTransaction(id: number) {
     const transactions = this.stateSignal().transactions.filter(t => t.id !== id);
     this.updateState({ transactions });
+  }
+
+  // Recurring Transactions Management
+  addRecurringTransaction(rt: Omit<RecurringTransaction, 'id'>) {
+    const id = Date.now();
+    const recurringTransactions = [...(this.stateSignal().recurringTransactions || INITIAL_RECURRING), { ...rt, id }];
+    this.updateState({ recurringTransactions });
+    // Process immediately in case the start date is in the past
+    this.processDueRecurringTransactions();
+  }
+
+  updateRecurringTransaction(rt: RecurringTransaction) {
+    const recurringTransactions = (this.stateSignal().recurringTransactions || INITIAL_RECURRING).map(item => 
+      item.id === rt.id ? rt : item
+    );
+    this.updateState({ recurringTransactions });
+    this.processDueRecurringTransactions();
+  }
+
+  deleteRecurringTransaction(id: number) {
+    const recurringTransactions = (this.stateSignal().recurringTransactions || INITIAL_RECURRING).filter(item => 
+      item.id !== id
+    );
+    this.updateState({ recurringTransactions });
   }
 
   setBudget(category: string, amount: number) {

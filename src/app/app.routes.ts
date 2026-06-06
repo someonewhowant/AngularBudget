@@ -8,5 +8,6 @@ export const routes: Routes = [
   { path: 'settings', loadComponent: () => import('./components/settings/settings').then(m => m.SettingsComponent) },
   { path: 'reports', loadComponent: () => import('./components/reports/reports').then(m => m.ReportsComponent) },
   { path: 'accounts', loadComponent: () => import('./components/accounts/accounts').then(m => m.AccountsComponent) },
+  { path: 'subscriptions', loadComponent: () => import('./components/subscriptions/subscriptions').then(m => m.SubscriptionsComponent) },
   { path: '**', redirectTo: '' }
 ];
