@@ -41,7 +41,10 @@ export class SettingsComponent implements OnInit {
   profileForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
     currency: ['USD', Validators.required],
-    budgetStartDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]]
+    budgetStartDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]],
+    budgetWarningThreshold: [85, [Validators.required, Validators.min(1), Validators.max(100)]],
+    enableBudgetOverrunAlert: [true],
+    enableBudgetWarningAlert: [true]
   });
 
   catForm: FormGroup = this.fb.group({
@@ -61,7 +64,10 @@ export class SettingsComponent implements OnInit {
       this.profileForm.patchValue({
         name: user.name,
         currency: user.currency || 'USD',
-        budgetStartDay: user.budgetStartDay || 1
+        budgetStartDay: user.budgetStartDay || 1,
+        budgetWarningThreshold: user.budgetWarningThreshold !== undefined ? user.budgetWarningThreshold : 85,
+        enableBudgetOverrunAlert: user.enableBudgetOverrunAlert !== false,
+        enableBudgetWarningAlert: user.enableBudgetWarningAlert !== false
       }, { emitEvent: false });
     }
   }
@@ -71,7 +77,10 @@ export class SettingsComponent implements OnInit {
       this.store.updateProfile({
         name: this.profileForm.value.name,
         currency: this.profileForm.value.currency,
-        budgetStartDay: Number(this.profileForm.value.budgetStartDay)
+        budgetStartDay: Number(this.profileForm.value.budgetStartDay),
+        budgetWarningThreshold: Number(this.profileForm.value.budgetWarningThreshold),
+        enableBudgetOverrunAlert: !!this.profileForm.value.enableBudgetOverrunAlert,
+        enableBudgetWarningAlert: !!this.profileForm.value.enableBudgetWarningAlert
       });
       this.toastService.show('Profile updated successfully!', 'success');
     }

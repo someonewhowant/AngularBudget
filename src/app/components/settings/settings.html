@@ -28,6 +28,29 @@
               <input type="number" formControlName="budgetStartDay" class="form-control" min="1" max="31" placeholder="e.g. 1, 10, 15">
               <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Define the day of the month when your monthly budget restarts (e.g. your payday).</p>
             </div>
+            <div class="form-group" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">
+              <label style="font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
+                <i class="fas fa-bell" style="color: var(--primary-blue);"></i> Budget Alert Configurations
+              </label>
+            </div>
+            
+            <div class="form-group">
+              <label>Budget Warning Threshold (%)</label>
+              <input type="number" formControlName="budgetWarningThreshold" class="form-control" min="1" max="100" placeholder="e.g. 80, 85, 90">
+              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Show a warning when spending reaches this percentage of a category budget.</p>
+            </div>
+            
+            <div class="form-group" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px; margin-bottom: 20px;">
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                <input type="checkbox" formControlName="enableBudgetOverrunAlert" style="width: 18px; height: 18px; accent-color: var(--primary-blue);">
+                <span>Enable Overrun Alerts (100% and above)</span>
+              </label>
+              <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                <input type="checkbox" formControlName="enableBudgetWarningAlert" style="width: 18px; height: 18px; accent-color: var(--primary-blue);">
+                <span>Enable Near Limit Alerts</span>
+              </label>
+            </div>
+            
             <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">Save Profile</button>
           </form>
         </div>

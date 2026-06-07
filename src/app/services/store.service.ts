@@ -147,26 +147,35 @@ export class StoreService {
         return acc;
       }, {});
 
+    const user = state.user;
+    const thresholdPct = (user.budgetWarningThreshold !== undefined ? user.budgetWarningThreshold : 85) / 100;
+    const enableOverrun = user.enableBudgetOverrunAlert !== false;
+    const enableWarning = user.enableBudgetWarningAlert !== false;
+
     budgets.forEach(b => {
       const spent = categoryExpenses[b.category] || 0;
       const limit = b.amount;
       if (spent >= limit) {
-        list.push({
-          type: 'warning',
-          icon: 'fa-exclamation-triangle',
-          title: `Budget Overrun: ${b.category}`,
-          message: `You have spent ${symbol}${spent.toFixed(2)} of your ${symbol}${limit.toFixed(2)} budget. You are over by ${symbol}${(spent - limit).toFixed(2)}!`,
-          colorClass: 'warning-red'
-        });
-      } else if (spent >= limit * 0.85) {
-        const pct = Math.round((spent / limit) * 100);
-        list.push({
-          type: 'warning',
-          icon: 'fa-exclamation-circle',
-          title: `Near Budget Limit: ${b.category}`,
-          message: `You have spent ${pct}% (${symbol}${spent.toFixed(2)} / ${symbol}${limit.toFixed(2)}) of your budget. Consider cutting back on ${b.category.toLowerCase()} spending.`,
-          colorClass: 'warning-orange'
-        });
+        if (enableOverrun) {
+          list.push({
+            type: 'warning',
+            icon: 'fa-exclamation-triangle',
+            title: `Budget Overrun: ${b.category}`,
+            message: `You have spent ${symbol}${spent.toFixed(2)} of your ${symbol}${limit.toFixed(2)} budget. You are over by ${symbol}${(spent - limit).toFixed(2)}!`,
+            colorClass: 'warning-red'
+          });
+        }
+      } else if (spent >= limit * thresholdPct) {
+        if (enableWarning) {
+          const pct = Math.round((spent / limit) * 100);
+          list.push({
+            type: 'warning',
+            icon: 'fa-exclamation-circle',
+            title: `Near Budget Limit: ${b.category}`,
+            message: `You have spent ${pct}% (${symbol}${spent.toFixed(2)} / ${symbol}${limit.toFixed(2)}) of your budget. Consider cutting back on ${b.category.toLowerCase()} spending.`,
+            colorClass: 'warning-orange'
+          });
+        }
       }
     });
 
@@ -410,6 +419,9 @@ export class StoreService {
           theme: localStorage.getItem('theme') || 'dark',
           user: {
             budgetStartDay: 1,
+            budgetWarningThreshold: 85,
+            enableBudgetOverrunAlert: true,
+            enableBudgetWarningAlert: true,
             ...JSON.parse(localStorage.getItem('user') || JSON.stringify({
               name: 'User',
               balance: 24500,
@@ -429,7 +441,15 @@ export class StoreService {
       budgets: INITIAL_BUDGETS,
       savingsGoals: INITIAL_SAVINGS_GOALS,
       theme: 'dark',
-      user: { name: 'User', balance: 24500, currency: 'USD', budgetStartDay: 1 },
+      user: {
+        name: 'User',
+        balance: 24500,
+        currency: 'USD',
+        budgetStartDay: 1,
+        budgetWarningThreshold: 85,
+        enableBudgetOverrunAlert: true,
+        enableBudgetWarningAlert: true
+      },
       accounts: DEFAULT_ACCOUNTS,
       recurringTransactions: INITIAL_RECURRING
     };

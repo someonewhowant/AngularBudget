@@ -19,6 +19,9 @@ export interface UserProfile {
   currency?: string;
   hasCompletedOnboarding?: boolean;
   budgetStartDay?: number;
+  budgetWarningThreshold?: number;
+  enableBudgetOverrunAlert?: boolean;
+  enableBudgetWarningAlert?: boolean;
 }
 
 export interface SavingsGoal {
