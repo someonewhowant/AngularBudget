@@ -14,7 +14,7 @@ import { Account } from '../../models/budget.models';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class SettingsComponent implements OnInit {
-  private store = inject(StoreService);
+  readonly store = inject(StoreService);
   private fb = inject(FormBuilder);
   private toastService = inject(ToastService);
   private router = inject(Router);
@@ -44,7 +44,8 @@ export class SettingsComponent implements OnInit {
     budgetStartDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]],
     budgetWarningThreshold: [85, [Validators.required, Validators.min(1), Validators.max(100)]],
     enableBudgetOverrunAlert: [true],
-    enableBudgetWarningAlert: [true]
+    enableBudgetWarningAlert: [true],
+    language: ['en', Validators.required]
   });
 
   catForm: FormGroup = this.fb.group({
@@ -67,7 +68,8 @@ export class SettingsComponent implements OnInit {
         budgetStartDay: user.budgetStartDay || 1,
         budgetWarningThreshold: user.budgetWarningThreshold !== undefined ? user.budgetWarningThreshold : 85,
         enableBudgetOverrunAlert: user.enableBudgetOverrunAlert !== false,
-        enableBudgetWarningAlert: user.enableBudgetWarningAlert !== false
+        enableBudgetWarningAlert: user.enableBudgetWarningAlert !== false,
+        language: user.language || 'en'
       }, { emitEvent: false });
     }
   }
@@ -80,15 +82,26 @@ export class SettingsComponent implements OnInit {
         budgetStartDay: Number(this.profileForm.value.budgetStartDay),
         budgetWarningThreshold: Number(this.profileForm.value.budgetWarningThreshold),
         enableBudgetOverrunAlert: !!this.profileForm.value.enableBudgetOverrunAlert,
-        enableBudgetWarningAlert: !!this.profileForm.value.enableBudgetWarningAlert
+        enableBudgetWarningAlert: !!this.profileForm.value.enableBudgetWarningAlert,
+        language: this.profileForm.value.language
       });
-      this.toastService.show('Profile updated successfully!', 'success');
+      this.toastService.show(this.store.t().saveProfileSuccess || 'Profile updated successfully!', 'success');
     }
   }
 
   handleThemeChange(themeId: string) {
     this.store.setTheme(themeId);
     this.toastService.show(`Theme changed to ${themeId}!`, 'info');
+  }
+
+  handleLanguageChange(lang: 'en' | 'ru') {
+    const user = this.store.user();
+    this.store.updateProfile({
+      ...user,
+      language: lang
+    });
+    this.profileForm.get('language')?.setValue(lang, { emitEvent: false });
+    this.toastService.show(lang === 'ru' ? 'Язык успешно изменен!' : 'Language changed successfully!', 'success');
   }
 
   handleAddCategory() {

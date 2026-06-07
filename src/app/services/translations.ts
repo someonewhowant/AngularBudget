@@ -1,0 +1,116 @@
+export const TRANSLATIONS = {
+  en: {
+    // Navigation
+    navDashboard: 'Dashboard',
+    navTransactions: 'Transactions',
+    navBudget: 'Budget',
+    navSavings: 'Savings',
+    navSubscriptions: 'Subscriptions',
+    navAccounts: 'Accounts',
+    navReports: 'Reports',
+    navSettings: 'Settings',
+
+    // Settings General
+    settingsTitle: 'Settings',
+    userProfile: 'User Profile',
+    fullName: 'Full Name',
+    defaultCurrency: 'Default Currency',
+    budgetCycleStartDay: 'Budget Cycle Start Day',
+    budgetCycleStartDayDesc: 'Define the day of the month when your monthly budget restarts (e.g. your payday).',
+    budgetAlertConfigs: 'Budget Alert Configurations',
+    budgetWarningThreshold: 'Budget Warning Threshold (%)',
+    budgetWarningThresholdDesc: 'Show a warning when spending reaches this percentage of a category budget.',
+    enableOverrunAlerts: 'Enable Overrun Alerts (100% and above)',
+    enableNearLimitAlerts: 'Enable Near Limit Alerts',
+    saveProfile: 'Save Profile',
+    saveProfileSuccess: 'Profile updated successfully!',
+    
+    // Settings Appearance & Language
+    appearance: 'Appearance',
+    appearanceDesc: 'Choose your preferred UI color scheme.',
+    selectLanguage: 'Select Language',
+    selectLanguageDesc: 'Choose your preferred language.',
+    english: 'English',
+    russian: 'Russian',
+
+    // Settings Categories
+    categoriesManagement: 'Categories Management',
+    categoriesManagementDesc: 'Customize your income and expense categories. Adding or deleting categories will instantly update them across the entire application.',
+    categoryName: 'Category Name',
+    categoryType: 'Type',
+    expense: 'Expense',
+    income: 'Income',
+    addCategory: 'Add Category',
+    expenseCategories: 'Expense Categories',
+    incomeCategories: 'Income Categories',
+
+    // Settings Backup
+    backupRestore: 'Backup & Restore',
+    backupRestoreDesc: 'Export your financial data to a JSON file to keep a backup, or restore from a previously saved file.',
+    exportData: 'Export Data',
+    importData: 'Import Data',
+    dangerZone: 'Danger Zone',
+    dangerZoneDesc: 'This action will clear all your transaction history and budget settings. This cannot be undone.',
+    resetAllData: 'Reset All Data',
+    helpTour: 'Help & Tour',
+    helpTourDesc: 'Need help navigating the application? You can restart the onboarding interactive tour to review the key features.',
+    restartTour: 'Restart Onboarding Tour',
+  },
+  ru: {
+    // Navigation
+    navDashboard: 'Панель управления',
+    navTransactions: 'Транзакции',
+    navBudget: 'Бюджет',
+    navSavings: 'Сбережения',
+    navSubscriptions: 'Подписки',
+    navAccounts: 'Счета',
+    navReports: 'Отчеты',
+    navSettings: 'Настройки',
+
+    // Settings General
+    settingsTitle: 'Настройки',
+    userProfile: 'Профиль пользователя',
+    fullName: 'Полное имя',
+    defaultCurrency: 'Валюта по умолчанию',
+    budgetCycleStartDay: 'День начала цикла бюджета',
+    budgetCycleStartDayDesc: 'Определите день месяца, когда ваш ежемесячный бюджет перезапускается (например, день вашей зарплаты).',
+    budgetAlertConfigs: 'Настройки уведомлений бюджета',
+    budgetWarningThreshold: 'Порог предупреждения бюджета (%)',
+    budgetWarningThresholdDesc: 'Показывать предупреждение, когда расходы достигают этого процента от бюджета категории.',
+    enableOverrunAlerts: 'Включить уведомления о превышении (100% и выше)',
+    enableNearLimitAlerts: 'Включить уведомления о приближении к лимиту',
+    saveProfile: 'Сохранить профиль',
+    saveProfileSuccess: 'Профиль успешно обновлен!',
+    
+    // Settings Appearance & Language
+    appearance: 'Внешний вид',
+    appearanceDesc: 'Выберите цветовую схему интерфейса.',
+    selectLanguage: 'Выбор языка',
+    selectLanguageDesc: 'Выберите предпочитаемый язык.',
+    english: 'English (Английский)',
+    russian: 'Русский',
+
+    // Settings Categories
+    categoriesManagement: 'Управление категориями',
+    categoriesManagementDesc: 'Настройте категории доходов и расходов. Добавление или удаление категорий мгновенно обновит их во всем приложении.',
+    categoryName: 'Название категории',
+    categoryType: 'Тип',
+    expense: 'Расход',
+    income: 'Доход',
+    addCategory: 'Добавить категорию',
+    expenseCategories: 'Категории расходов',
+    incomeCategories: 'Категории доходов',
+
+    // Settings Backup
+    backupRestore: 'Резервное копирование',
+    backupRestoreDesc: 'Экспортируйте ваши финансовые данные в JSON-файл для резервной копии или восстановите их из ранее сохраненного файла.',
+    exportData: 'Экспорт данных',
+    importData: 'Импорт данных',
+    dangerZone: 'Опасная зона',
+    dangerZoneDesc: 'Это действие удалит всю историю ваших транзакций и настройки бюджета. Это действие необратимо.',
+    resetAllData: 'Сбросить все данные',
+    helpTour: 'Помощь и тур',
+    helpTourDesc: 'Нужна помощь в навигации по приложению? Вы можете перезапустить тур, чтобы ознакомиться с ключевыми функциями.',
+    restartTour: 'Перезапустить тур по приложению',
+  }
+};

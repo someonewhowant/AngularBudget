@@ -6,35 +6,35 @@
   <nav class="nav-links">
     <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
       <i class="fas fa-th-large"></i>
-      <span>Dashboard</span>
+      <span>{{ store.t().navDashboard }}</span>
     </a>
     <a routerLink="/budget" routerLinkActive="active" class="nav-link">
       <i class="fas fa-wallet"></i>
-      <span>Budget Planning</span>
+      <span>{{ store.t().navBudget }}</span>
     </a>
     <a routerLink="/savings" routerLinkActive="active" class="nav-link">
       <i class="fas fa-piggy-bank"></i>
-      <span>Savings Goals</span>
+      <span>{{ store.t().navSavings }}</span>
     </a>
     <a routerLink="/transactions" routerLinkActive="active" class="nav-link">
       <i class="fas fa-exchange-alt"></i>
-      <span>Transactions</span>
+      <span>{{ store.t().navTransactions }}</span>
     </a>
     <a routerLink="/subscriptions" routerLinkActive="active" class="nav-link">
       <i class="fas fa-redo"></i>
-      <span>Subscriptions</span>
+      <span>{{ store.t().navSubscriptions }}</span>
     </a>
     <a routerLink="/reports" routerLinkActive="active" class="nav-link">
       <i class="fas fa-chart-pie"></i>
-      <span>Reports</span>
+      <span>{{ store.t().navReports }}</span>
     </a>
     <a routerLink="/accounts" routerLinkActive="active" class="nav-link">
       <i class="fas fa-credit-card"></i>
-      <span>Accounts</span>
+      <span>{{ store.t().navAccounts }}</span>
     </a>
     <a routerLink="/settings" routerLinkActive="active" class="nav-link">
       <i class="fas fa-cog"></i>
-      <span>Settings</span>
+      <span>{{ store.t().navSettings }}</span>
     </a>
   </nav>
 </aside>

@@ -1,6 +1,7 @@
 import { Injectable, signal, computed, effect, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal, Account, RecurringTransaction, FinancialInsight } from '../models/budget.models';
+import { TRANSLATIONS } from './translations';
 
 const INITIAL_BUDGETS: Budget[] = [
   { category: 'Food', amount: 500 },
@@ -72,6 +73,11 @@ export class StoreService {
   readonly savingsGoals = computed(() => this.stateSignal().savingsGoals);
   readonly theme = computed(() => this.stateSignal().theme);
   readonly user = computed(() => this.stateSignal().user);
+  readonly t = computed(() => {
+    const user = this.stateSignal().user;
+    const lang = user?.language || 'en';
+    return TRANSLATIONS[lang] || TRANSLATIONS.en;
+  });
   readonly summary = computed(() => this.calculateSummary(this.stateSignal()));
   readonly recurringTransactions = computed(() => this.stateSignal().recurringTransactions || INITIAL_RECURRING);
 
@@ -422,6 +428,7 @@ export class StoreService {
             budgetWarningThreshold: 85,
             enableBudgetOverrunAlert: true,
             enableBudgetWarningAlert: true,
+            language: 'en',
             ...JSON.parse(localStorage.getItem('user') || JSON.stringify({
               name: 'User',
               balance: 24500,
@@ -448,7 +455,8 @@ export class StoreService {
         budgetStartDay: 1,
         budgetWarningThreshold: 85,
         enableBudgetOverrunAlert: true,
-        enableBudgetWarningAlert: true
+        enableBudgetWarningAlert: true,
+        language: 'en'
       },
       accounts: DEFAULT_ACCOUNTS,
       recurringTransactions: INITIAL_RECURRING

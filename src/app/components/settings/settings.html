@@ -2,21 +2,23 @@
   <app-sidebar></app-sidebar>
   <main class="main-content">
     <header class="section-title">
-      <h1>Settings</h1>
-      <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Manage your profile and application preferences.</p>
+      <h1>{{ store.t().settingsTitle }}</h1>
+      <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">
+        {{ store.t().settingsTitle === 'Settings' ? 'Manage your profile and application preferences.' : 'Управляйте вашим профилем и предпочтениями приложения.' }}
+      </p>
     </header>
     
     @if (state(); as s) {
       <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 24px;">
         <div class="glass-card">
-          <h3 style="margin-bottom: 20px;">User Profile</h3>
+          <h3 style="margin-bottom: 20px;">{{ store.t().userProfile }}</h3>
           <form [formGroup]="profileForm" (ngSubmit)="handleProfileSubmit()">
             <div class="form-group">
-              <label>Full Name</label>
+              <label>{{ store.t().fullName }}</label>
               <input type="text" formControlName="name" class="form-control">
             </div>
             <div class="form-group">
-              <label>Default Currency</label>
+              <label>{{ store.t().defaultCurrency }}</label>
               <select formControlName="currency" class="form-control">
                 @for (c of currencies(); track c.code) {
                   <option [value]="c.code">{{c.name}}</option>
@@ -24,58 +26,79 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Budget Cycle Start Day</label>
+              <label>{{ store.t().budgetCycleStartDay }}</label>
               <input type="number" formControlName="budgetStartDay" class="form-control" min="1" max="31" placeholder="e.g. 1, 10, 15">
-              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Define the day of the month when your monthly budget restarts (e.g. your payday).</p>
+              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">{{ store.t().budgetCycleStartDayDesc }}</p>
             </div>
             <div class="form-group" style="margin-top: 15px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 15px;">
               <label style="font-weight: 600; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; margin-bottom: 15px;">
-                <i class="fas fa-bell" style="color: var(--primary-blue);"></i> Budget Alert Configurations
+                <i class="fas fa-bell" style="color: var(--primary-blue);"></i> {{ store.t().budgetAlertConfigs }}
               </label>
             </div>
             
             <div class="form-group">
-              <label>Budget Warning Threshold (%)</label>
+              <label>{{ store.t().budgetWarningThreshold }}</label>
               <input type="number" formControlName="budgetWarningThreshold" class="form-control" min="1" max="100" placeholder="e.g. 80, 85, 90">
-              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Show a warning when spending reaches this percentage of a category budget.</p>
+              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">{{ store.t().budgetWarningThresholdDesc }}</p>
             </div>
             
             <div class="form-group" style="display: flex; flex-direction: column; gap: 12px; margin-top: 10px; margin-bottom: 20px;">
               <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
                 <input type="checkbox" formControlName="enableBudgetOverrunAlert" style="width: 18px; height: 18px; accent-color: var(--primary-blue);">
-                <span>Enable Overrun Alerts (100% and above)</span>
+                <span>{{ store.t().enableOverrunAlerts }}</span>
               </label>
               <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
                 <input type="checkbox" formControlName="enableBudgetWarningAlert" style="width: 18px; height: 18px; accent-color: var(--primary-blue);">
-                <span>Enable Near Limit Alerts</span>
+                <span>{{ store.t().enableNearLimitAlerts }}</span>
               </label>
             </div>
             
-            <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">Save Profile</button>
+            <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">{{ store.t().saveProfile }}</button>
           </form>
         </div>
 
-        <div class="glass-card">
-          <h3 style="margin-bottom: 20px;">Appearance</h3>
-          <div style="display: flex; flex-direction: column; gap: 12px;">
-            @for (t of themes; track t.id) {
-              <label 
-                [style.background]="s.theme === t.id ? 'var(--border-glass)' : 'transparent'"
-                [style.border-color]="s.theme === t.id ? 'var(--primary-blue)' : 'var(--border-glass)'"
-                style="display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid;">
-                <input type="radio" name="theme" [checked]="s.theme === t.id" (change)="handleThemeChange(t.id)" style="accent-color: var(--primary-blue);">
-                <div [style.background]="t.color" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid #666;"></div>
-                <span>{{t.name}}</span>
-              </label>
-            }
+        <div class="glass-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <h3 style="margin-bottom: 20px;">{{ store.t().appearance }}</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 24px;">
+              @for (t of themes; track t.id) {
+                <label 
+                  [style.background]="s.theme === t.id ? 'var(--border-glass)' : 'transparent'"
+                  [style.border-color]="s.theme === t.id ? 'var(--primary-blue)' : 'var(--border-glass)'"
+                  style="display: flex; align-items: center; gap: 15px; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid;">
+                  <input type="radio" name="theme" [checked]="s.theme === t.id" (change)="handleThemeChange(t.id)" style="accent-color: var(--primary-blue);">
+                  <div [style.background]="t.color" style="width: 20px; height: 20px; border-radius: 50%; border: 1px solid #666;"></div>
+                  <span>{{t.name}}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+            <h3 style="margin-bottom: 10px;">{{ store.t().selectLanguage }}</h3>
+            <p style="font-size: 0.8rem; color: var(--text-dim); margin-bottom: 15px;">{{ store.t().selectLanguageDesc }}</p>
+            <div style="display: flex; gap: 15px;">
+              <button type="button" (click)="handleLanguageChange('en')" 
+                      [style.background]="store.user().language === 'en' ? 'var(--primary-blue)' : 'rgba(255,255,255,0.02)'"
+                      [style.border-color]="store.user().language === 'en' ? 'var(--primary-blue)' : 'var(--border-glass)'"
+                      style="flex: 1; padding: 12px; border: 1px solid; border-radius: 8px; color: var(--text-main); font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                <span style="font-size: 1.2rem;">🇺🇸</span> {{ store.t().english }}
+              </button>
+              <button type="button" (click)="handleLanguageChange('ru')" 
+                      [style.background]="store.user().language === 'ru' ? 'var(--primary-blue)' : 'rgba(255,255,255,0.02)'"
+                      [style.border-color]="store.user().language === 'ru' ? 'var(--primary-blue)' : 'var(--border-glass)'"
+                      style="flex: 1; padding: 12px; border: 1px solid; border-radius: 8px; color: var(--text-main); font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: all 0.2s;">
+                <span style="font-size: 1.2rem;">🇷🇺</span> {{ store.t().russian }}
+              </button>
+            </div>
           </div>
         </div>
 
         <div class="glass-card" style="grid-column: span 2;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3 style="margin: 0;">Accounts & Wallets</h3>
+            <h3 style="margin: 0;">{{ store.t().settingsTitle === 'Settings' ? 'Accounts & Wallets' : 'Счета и кошельки' }}</h3>
             <button type="button" (click)="openAccountModal()" class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 0.9rem; display: flex; align-items: center; gap: 6px;">
-              <i class="fas fa-plus"></i> Add Account
+              <i class="fas fa-plus"></i> {{ store.t().settingsTitle === 'Settings' ? 'Add Account' : 'Добавить счет' }}
             </button>
           </div>
           
@@ -89,7 +112,7 @@
                   <div>
                     <div style="font-weight: 600; font-size: 0.95rem;">{{acc.name}}</div>
                     <div style="font-size: 0.8rem; color: var(--text-dim);">
-                      Balance: <span [style.color]="acc.currentBalance >= 0 ? 'var(--primary-blue)' : '#ff4d4d'">{{currencySymbol()}}{{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</span>
+                      {{ store.t().settingsTitle === 'Settings' ? 'Balance:' : 'Баланс:' }} <span [style.color]="acc.currentBalance >= 0 ? 'var(--primary-blue)' : '#ff4d4d'">{{currencySymbol()}}{{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</span>
                     </div>
                   </div>
                 </div>
@@ -105,35 +128,35 @@
             }
             @if (accounts().length === 0) {
               <div style="grid-column: span 2; text-align: center; padding: 30px; color: var(--text-dim);">
-                No wallets or bank accounts found. Create one to get started.
+                {{ store.t().settingsTitle === 'Settings' ? 'No wallets or bank accounts found. Create one to get started.' : 'Счета и кошельки не найдены. Создайте счет, чтобы начать.' }}
               </div>
             }
           </div>
         </div>
 
         <div class="glass-card" style="grid-column: span 2;">
-          <h3 style="margin-bottom: 20px;">Categories Management</h3>
+          <h3 style="margin-bottom: 20px;">{{ store.t().categoriesManagement }}</h3>
           <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
-            Customize your income and expense categories. Adding or deleting categories will instantly update them across the entire application.
+            {{ store.t().categoriesManagementDesc }}
           </p>
           
           <!-- Add Category Form -->
           <form [formGroup]="catForm" (ngSubmit)="handleAddCategory()" style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">
             <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: flex-end;">
               <div class="form-group" style="margin: 0;">
-                <label>Category Name</label>
+                <label>{{ store.t().categoryName }}</label>
                 <input type="text" formControlName="name" class="form-control" placeholder="e.g. Health, Gift, Bonus">
               </div>
               <div class="form-group" style="margin: 0;">
-                <label>Type</label>
+                <label>{{ store.t().categoryType }}</label>
                 <select formControlName="type" class="form-control">
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
+                  <option value="expense">{{ store.t().expense }}</option>
+                  <option value="income">{{ store.t().income }}</option>
                 </select>
               </div>
               <button type="submit" [disabled]="!catForm.valid" class="btn-primary" 
                       style="padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600;">
-                <i class="fas fa-plus" style="margin-right: 5px;"></i> Add Category
+                <i class="fas fa-plus" style="margin-right: 5px;"></i> {{ store.t().addCategory }}
               </button>
             </div>
           </form>
@@ -143,7 +166,7 @@
             <!-- Expense Categories -->
             <div>
               <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: var(--accent-purple); border-bottom: 1px solid rgba(188, 19, 254, 0.2); padding-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-arrow-down" style="font-size: 0.85rem;"></i> Expense Categories
+                <i class="fas fa-arrow-down" style="font-size: 0.85rem;"></i> {{ store.t().expenseCategories }}
               </h4>
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
                 @for (cat of expenseCategories(); track cat) {
@@ -151,7 +174,7 @@
                     <span>{{cat}}</span>
                     <button type="button" (click)="handleDeleteCategory(cat, 'expense')" 
                             style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.85rem;"
-                            title="Delete category">
+                            [title]="store.t().settingsTitle === 'Settings' ? 'Delete category' : 'Удалить категорию'">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -162,7 +185,7 @@
             <!-- Income Categories -->
             <div>
               <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: var(--primary-blue); border-bottom: 1px solid rgba(13, 89, 242, 0.2); padding-bottom: 6px; display: flex; align-items: center; gap: 8px;">
-                <i class="fas fa-arrow-up" style="font-size: 0.85rem;"></i> Income Categories
+                <i class="fas fa-arrow-up" style="font-size: 0.85rem;"></i> {{ store.t().incomeCategories }}
               </h4>
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
                 @for (cat of incomeCategories(); track cat) {
@@ -170,7 +193,7 @@
                     <span>{{cat}}</span>
                     <button type="button" (click)="handleDeleteCategory(cat, 'income')" 
                             style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.85rem;"
-                            title="Delete category">
+                            [title]="store.t().settingsTitle === 'Settings' ? 'Delete category' : 'Удалить категорию'">
                       <i class="fas fa-trash-alt"></i>
                     </button>
                   </div>
@@ -181,42 +204,42 @@
         </div>
 
         <div class="glass-card">
-          <h3 style="margin-bottom: 20px;">Backup & Restore</h3>
+          <h3 style="margin-bottom: 20px;">{{ store.t().backupRestore }}</h3>
           <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
-            Export your financial data to a JSON file to keep a backup, or restore from a previously saved file.
+            {{ store.t().backupRestoreDesc }}
           </p>
           <div style="display: flex; gap: 15px; flex-direction: column;">
             <button type="button" (click)="exportData()" style="padding: 12px; background: rgba(255,255,255,0.05); color: var(--primary-blue); border: 1px solid var(--primary-blue); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-file-export" style="margin-right: 8px;"></i> Export Data (JSON)
+              <i class="fas fa-file-export" style="margin-right: 8px;"></i> {{ store.t().exportData }} (JSON)
             </button>
             <button type="button" (click)="exportToCSV()" style="padding: 12px; background: rgba(255,255,255,0.05); color: #ff9f43; border: 1px solid #ff9f43; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-file-csv" style="margin-right: 8px;"></i> Export to CSV
+              <i class="fas fa-file-csv" style="margin-right: 8px;"></i> {{ store.t().settingsTitle === 'Settings' ? 'Export to CSV' : 'Экспорт в CSV' }}
             </button>
             <div style="position: relative;">
               <input type="file" accept=".json" (change)="importData($event)" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer;">
               <button type="button" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); color: var(--success-green); border: 1px solid var(--success-green); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; pointer-events: none;">
-                <i class="fas fa-file-import" style="margin-right: 8px;"></i> Import Data
+                <i class="fas fa-file-import" style="margin-right: 8px;"></i> {{ store.t().importData }}
               </button>
             </div>
           </div>
         </div>
         <div class="glass-card">
-          <h3 style="margin-bottom: 20px;">Help & Tour</h3>
+          <h3 style="margin-bottom: 20px;">{{ store.t().helpTour }}</h3>
           <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
-            Need help navigating the application? You can restart the onboarding interactive tour to review the key features.
+            {{ store.t().helpTourDesc }}
           </p>
           <button type="button" (click)="replayTour()" class="btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
-            <i class="fas fa-play"></i> Restart Onboarding Tour
+            <i class="fas fa-play"></i> {{ store.t().restartTour }}
           </button>
         </div>
 
         <div class="glass-card">
-          <h3 style="margin-bottom: 20px;">Danger Zone</h3>
+          <h3 style="margin-bottom: 20px;">{{ store.t().dangerZone }}</h3>
           <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
-            This action will clear all your transaction history and budget settings. This cannot be undone.
+            {{ store.t().dangerZoneDesc }}
           </p>
           <button (click)="confirmReset()" style="width: 100%; padding: 14px; background: #ff4d4d; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-            Reset All Data
+            {{ store.t().resetAllData }}
           </button>
         </div>
       </div>
@@ -230,11 +253,17 @@
     <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
       <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff4d4d; filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.4));"></i>
     </div>
-    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">Reset All Data?</h3>
-    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">Are you sure you want to delete all your data? This action cannot be undone and will reset the app state.</p>
+    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">{{ store.t().settingsTitle === 'Settings' ? 'Reset All Data?' : 'Сбросить все данные?' }}</h3>
+    <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">
+      {{ store.t().settingsTitle === 'Settings' ? 'Are you sure you want to delete all your data? This action cannot be undone and will reset the app state.' : 'Вы уверены, что хотите удалить все ваши данные? Это действие необратимо и сбросит состояние приложения.' }}
+    </p>
     <div style="display: flex; gap: 15px;">
-      <button type="button" class="btn-primary" (click)="closeConfirmReset()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1;">Cancel</button>
-      <button type="button" class="btn-primary" (click)="executeReset()" style="background: #ff4d4d; flex: 1;">Reset Data</button>
+      <button type="button" class="btn-primary" (click)="closeConfirmReset()" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1;">
+        {{ store.t().settingsTitle === 'Settings' ? 'Cancel' : 'Отмена' }}
+      </button>
+      <button type="button" class="btn-primary" (click)="executeReset()" style="background: #ff4d4d; flex: 1;">
+        {{ store.t().settingsTitle === 'Settings' ? 'Reset Data' : 'Сбросить данные' }}
+      </button>
     </div>
   </div>
 </div>
@@ -243,35 +272,37 @@
 <div class="modal-overlay" [class.active]="isAccountModalOpen()">
   <div class="modal-container" style="max-width: 500px;">
     <div class="modal-header">
-      <h2>{{editingAccount() ? 'Edit Account' : 'Add New Account'}}</h2>
+      <h2>{{ store.t().settingsTitle === 'Settings' ? (editingAccount() ? 'Edit Account' : 'Add New Account') : (editingAccount() ? 'Редактировать счет' : 'Добавить новый счет') }}</h2>
       <button (click)="closeAccountModal()" style="background: none; border: none; color: white; font-size: 1.5rem; cursor: pointer;">&times;</button>
     </div>
     <form [formGroup]="accountForm" (ngSubmit)="handleAccountSubmit()">
       <div class="form-group">
-        <label>Account Name</label>
-        <input type="text" formControlName="name" class="form-control" placeholder="e.g. Chase Checking, Cash Wallet">
+        <label>{{ store.t().settingsTitle === 'Settings' ? 'Account Name' : 'Название счета' }}</label>
+        <input type="text" formControlName="name" class="form-control" [placeholder]="store.t().settingsTitle === 'Settings' ? 'e.g. Chase Checking, Cash Wallet' : 'например, Сбербанк, Наличные'">
       </div>
       
       <div class="form-group">
-        <label>Account Type</label>
+        <label>{{ store.t().settingsTitle === 'Settings' ? 'Account Type' : 'Тип счета' }}</label>
         <select formControlName="type" class="form-control">
-          <option value="checking">Checking / Bank Account</option>
-          <option value="savings">Savings Account</option>
-          <option value="credit">Credit Card</option>
-          <option value="cash">Cash / Physical Wallet</option>
-          <option value="other">Other / Digital Wallet</option>
+          <option value="checking">{{ store.t().settingsTitle === 'Settings' ? 'Checking / Bank Account' : 'Текущий / Банковский счет' }}</option>
+          <option value="savings">{{ store.t().settingsTitle === 'Settings' ? 'Savings Account' : 'Сберегательный счет' }}</option>
+          <option value="credit">{{ store.t().settingsTitle === 'Settings' ? 'Credit Card' : 'Кредитная карта' }}</option>
+          <option value="cash">{{ store.t().settingsTitle === 'Settings' ? 'Cash / Physical Wallet' : 'Наличные / Кошелек' }}</option>
+          <option value="other">{{ store.t().settingsTitle === 'Settings' ? 'Other / Digital Wallet' : 'Другой / Электронный кошелек' }}</option>
         </select>
       </div>
 
       <div class="form-group">
-        <label>Initial Balance ({{currencySymbol()}})</label>
+        <label>{{ store.t().settingsTitle === 'Settings' ? 'Initial Balance' : 'Начальный баланс' }} ({{currencySymbol()}})</label>
         <input type="number" formControlName="initialBalance" class="form-control" min="0">
       </div>
 
       <div style="display: flex; gap: 15px; margin-top: 30px;">
-        <button type="button" (click)="closeAccountModal()" class="btn-secondary" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main);">Cancel</button>
+        <button type="button" (click)="closeAccountModal()" class="btn-secondary" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main);">
+          {{ store.t().settingsTitle === 'Settings' ? 'Cancel' : 'Отмена' }}
+        </button>
         <button type="submit" [disabled]="accountForm.invalid" class="btn-primary" style="flex: 1; padding: 14px;">
-          {{editingAccount() ? 'Save Changes' : 'Create Account'}}
+          {{ store.t().settingsTitle === 'Settings' ? (editingAccount() ? 'Save Changes' : 'Create Account') : (editingAccount() ? 'Сохранить изменения' : 'Создать счет') }}
         </button>
       </div>
     </form>
@@ -284,13 +315,17 @@
     <div class="modal-header" style="justify-content: center; margin-bottom: 15px;">
       <i class="fas fa-exclamation-triangle" style="font-size: 3rem; color: #ff4d4d; filter: drop-shadow(0 0 10px rgba(255, 77, 77, 0.4));"></i>
     </div>
-    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">Delete Account?</h3>
+    <h3 style="margin-bottom: 12px; font-size: 1.4rem;">{{ store.t().settingsTitle === 'Settings' ? 'Delete Account?' : 'Удалить счет?' }}</h3>
     <p style="color: var(--text-dim); font-size: 0.95rem; margin-bottom: 25px;">
-      Are you sure you want to delete this account? <b>Warning:</b> This will also delete all transactions associated with this account. This action cannot be undone.
+      {{ store.t().settingsTitle === 'Settings' ? 'Are you sure you want to delete this account? Warning: This will also delete all transactions associated with this account. This action cannot be undone.' : 'Вы уверены, что хотите удалить этот счет? Предупреждение: это также удалит все транзакции, связанные с этим счетом. Это действие необратимо.' }}
     </p>
     <div style="display: flex; gap: 15px;">
-      <button (click)="closeConfirmDeleteAccount()" class="btn-primary" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1; padding: 12px;">Cancel</button>
-      <button (click)="executeDeleteAccount()" class="btn-primary" style="flex: 1; padding: 12px; background: #ff4d4d;">Delete</button>
+      <button (click)="closeConfirmDeleteAccount()" class="btn-primary" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-glass); color: var(--text-main); flex: 1; padding: 12px;">
+        {{ store.t().settingsTitle === 'Settings' ? 'Cancel' : 'Отмена' }}
+      </button>
+      <button (click)="executeDeleteAccount()" class="btn-primary" style="flex: 1; padding: 12px; background: #ff4d4d;">
+        {{ store.t().settingsTitle === 'Settings' ? 'Delete' : 'Удалить' }}
+      </button>
     </div>
   </div>
 </div>

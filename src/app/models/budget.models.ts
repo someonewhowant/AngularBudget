@@ -22,6 +22,7 @@ export interface UserProfile {
   budgetWarningThreshold?: number;
   enableBudgetOverrunAlert?: boolean;
   enableBudgetWarningAlert?: boolean;
+  language?: 'en' | 'ru';
 }
 
 export interface SavingsGoal {
