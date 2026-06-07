@@ -1,5 +1,6 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ToastService } from '../../services/toast.service';
@@ -14,6 +15,7 @@ export class SettingsComponent implements OnInit {
   private store = inject(StoreService);
   private fb = inject(FormBuilder);
   private toastService = inject(ToastService);
+  private router = inject(Router);
   
   state = this.store.state;
   currencies = this.store.currencies;
@@ -132,5 +134,48 @@ export class SettingsComponent implements OnInit {
     reader.readAsText(file);
     // Reset file input so same file can be selected again if needed
     event.target.value = '';
+  }
+
+  replayTour() {
+    this.store.updateProfile({ hasCompletedOnboarding: false });
+    this.toastService.show('Restarting onboarding tour...', 'info');
+    this.router.navigate(['/']);
+  }
+
+  exportToCSV() {
+    const transactions = this.store.transactions();
+    if (!transactions || transactions.length === 0) {
+      this.toastService.show('No transactions found to export.', 'info');
+      return;
+    }
+
+    const headers = ['Date', 'Vendor', 'Category', 'Account', 'Type', 'Amount'];
+    const csvRows = [headers.join(',')];
+
+    for (const tx of transactions) {
+      const values = [
+        tx.date || '',
+        `"${(tx.vendor || '').replace(/"/g, '""')}"`,
+        `"${(tx.category || '').replace(/"/g, '""')}"`,
+        `"${(tx.account || '').replace(/"/g, '""')}"`,
+        tx.type || '',
+        tx.amount || 0
+      ];
+      csvRows.push(values.join(','));
+    }
+
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_export_${new Date().toISOString().split('T')[0]}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    this.toastService.show('Transactions exported to CSV successfully!', 'success');
   }
 }

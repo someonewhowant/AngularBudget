@@ -62,12 +62,12 @@ export class TransactionsComponent {
 
     // 1. Filter
     transactions = transactions.filter(t => {
-      const matchesSearch = t.vendor.toLowerCase().includes(query) || 
-                            t.category.toLowerCase().includes(query);
+      const matchesSearch = t.vendor.toLowerCase().includes(query) ||
+        t.category.toLowerCase().includes(query);
       const matchesCategory = category === 'all' || t.category === category;
       const matchesAccount = account === 'all' || t.account === account;
       const matchesType = type === 'all' || t.type === type;
-      
+
       let matchesDate = true;
       if (start) {
         matchesDate = matchesDate && t.date >= start;
@@ -75,7 +75,7 @@ export class TransactionsComponent {
       if (end) {
         matchesDate = matchesDate && t.date <= end;
       }
-      
+
       return matchesSearch && matchesCategory && matchesAccount && matchesType && matchesDate;
     });
 
@@ -103,7 +103,7 @@ export class TransactionsComponent {
   });
 
   isModalOpen = signal(false);
-  
+
   transactionForm: FormGroup = this.fb.group({
     vendor: ['', Validators.required],
     category: [this.expenseCategories()[0] || 'Food', Validators.required],
@@ -117,8 +117,8 @@ export class TransactionsComponent {
     this.transactionForm.get('type')?.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(type => {
-        const defaultCat = type === 'income' 
-          ? (this.incomeCategories()[0] || 'Salary') 
+        const defaultCat = type === 'income'
+          ? (this.incomeCategories()[0] || 'Salary')
           : (this.expenseCategories()[0] || 'Food');
         this.transactionForm.get('category')?.setValue(defaultCat);
       });
@@ -202,7 +202,7 @@ export class TransactionsComponent {
     if (this.transactionForm.valid) {
       const formValue = this.transactionForm.value;
       const editing = this.editingTransaction();
-      
+
       if (editing) {
         const updatedTransaction: Transaction = {
           ...editing,

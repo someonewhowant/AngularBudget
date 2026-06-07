@@ -1,12 +1,15 @@
 import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ToastService } from './services/toast.service';
+import { OnboardingComponent } from './components/onboarding/onboarding';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, OnboardingComponent],
   template: `
     <router-outlet></router-outlet>
+    
+    <app-onboarding></app-onboarding>
     
     <div class="toast-container">
       @for (toast of toasts(); track toast.id) {

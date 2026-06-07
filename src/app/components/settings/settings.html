@@ -49,7 +49,10 @@
           </p>
           <div style="display: flex; gap: 15px; flex-direction: column;">
             <button type="button" (click)="exportData()" style="padding: 12px; background: rgba(255,255,255,0.05); color: var(--primary-blue); border: 1px solid var(--primary-blue); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">
-              <i class="fas fa-file-export" style="margin-right: 8px;"></i> Export Data
+              <i class="fas fa-file-export" style="margin-right: 8px;"></i> Export Data (JSON)
+            </button>
+            <button type="button" (click)="exportToCSV()" style="padding: 12px; background: rgba(255,255,255,0.05); color: #ff9f43; border: 1px solid #ff9f43; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-file-csv" style="margin-right: 8px;"></i> Export to CSV
             </button>
             <div style="position: relative;">
               <input type="file" accept=".json" (change)="importData($event)" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer;">
@@ -59,7 +62,16 @@
             </div>
           </div>
         </div>
-        
+        <div class="glass-card">
+          <h3 style="margin-bottom: 20px;">Help & Tour</h3>
+          <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
+            Need help navigating the application? You can restart the onboarding interactive tour to review the key features.
+          </p>
+          <button type="button" (click)="replayTour()" class="btn-primary" style="width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;">
+            <i class="fas fa-play"></i> Restart Onboarding Tour
+          </button>
+        </div>
+
         <div class="glass-card">
           <h3 style="margin-bottom: 20px;">Danger Zone</h3>
           <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
