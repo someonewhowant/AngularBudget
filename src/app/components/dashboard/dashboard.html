@@ -4,84 +4,92 @@
     <header class="section-title"
       style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
       @if (user(); as u) {
-        <div>
-          <h1>Welcome back, {{u.name}}</h1>
-          <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Here's your financial overview for today.</p>
-        </div>
+      <div>
+        <h1>Welcome back, {{u.name}}</h1>
+        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Here's your financial overview for today.
+        </p>
+      </div>
       }
     </header>
 
     <!-- AI Smart Insights Section -->
     @if (insights(); as list) {
-      <div class="glass-card" style="margin-bottom: 24px; padding: 20px; border-left: 4px solid var(--accent-purple); background: linear-gradient(135deg, rgba(188, 19, 254, 0.05), rgba(13, 89, 242, 0.05)); backdrop-filter: blur(10px);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-          <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
-            <i class="fas fa-brain" style="color: var(--accent-purple); text-shadow: 0 0 10px rgba(188, 19, 254, 0.6);"></i>
-            AI Financial Insights
-          </h3>
-          <span style="font-size: 0.8rem; background: rgba(188, 19, 254, 0.1); color: var(--accent-purple); border: 1px solid rgba(188, 19, 254, 0.2); padding: 2px 8px; border-radius: 20px; font-weight: 600;">
-            {{list.length}} Active
-          </span>
-        </div>
-        
-        <div style="display: flex; flex-direction: column; gap: 12px;">
-          @for (insight of list; track insight.title) {
-            <div style="display: flex; align-items: flex-start; gap: 15px; padding: 12px 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s, background 0.2s;"
-                 onmouseover="this.style.background='rgba(255,255,255,0.04)'; this.style.transform='translateX(4px)'"
-                 onmouseout="this.style.background='rgba(255,255,255,0.02)'; this.style.transform='translateX(0)'">
-              
-              <!-- Dynamic Icon with colors -->
-              <div [class]="insight.colorClass" style="font-size: 1.2rem; min-width: 24px; padding-top: 2px; display: flex; align-items: center; justify-content: center;">
-                <i class="fas" [class]="insight.icon"></i>
-              </div>
-
-              <div style="flex: 1;">
-                <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600;">
-                  {{insight.title}}
-                </h4>
-                <p style="margin: 0; font-size: 0.85rem; color: var(--text-dim); line-height: 1.4;">
-                  {{insight.message}}
-                </p>
-              </div>
-
-            </div>
-          }
-        </div>
+    <div class="glass-card"
+      style="margin-bottom: 24px; padding: 20px; border-left: 4px solid var(--accent-purple); background: linear-gradient(135deg, rgba(188, 19, 254, 0.05), rgba(13, 89, 242, 0.05)); backdrop-filter: blur(10px);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+          <i class="fas fa-brain"
+            style="color: var(--accent-purple); text-shadow: 0 0 10px rgba(188, 19, 254, 0.6);"></i>
+          Financial Insights
+        </h3>
+        <span
+          style="font-size: 0.8rem; background: rgba(188, 19, 254, 0.1); color: var(--accent-purple); border: 1px solid rgba(188, 19, 254, 0.2); padding: 2px 8px; border-radius: 20px; font-weight: 600;">
+          {{list.length}} Active
+        </span>
       </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        @for (insight of list; track insight.title) {
+        <div
+          style="display: flex; align-items: flex-start; gap: 15px; padding: 12px 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s, background 0.2s;"
+          onmouseover="this.style.background='rgba(255,255,255,0.04)'; this.style.transform='translateX(4px)'"
+          onmouseout="this.style.background='rgba(255,255,255,0.02)'; this.style.transform='translateX(0)'">
+
+          <!-- Dynamic Icon with colors -->
+          <div [class]="insight.colorClass"
+            style="font-size: 1.2rem; min-width: 24px; padding-top: 2px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas" [class]="insight.icon"></i>
+          </div>
+
+          <div style="flex: 1;">
+            <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600;">
+              {{insight.title}}
+            </h4>
+            <p style="margin: 0; font-size: 0.85rem; color: var(--text-dim); line-height: 1.4;">
+              {{insight.message}}
+            </p>
+          </div>
+
+        </div>
+        }
+      </div>
+    </div>
     }
 
     <div class="grid dash-grid">
       <div style="display: flex; flex-direction: column; gap: 24px;">
         @if (summary(); as s) {
-          <div class="glass-card balance-card">
-            <div style="position: relative; z-index: 1;">
-              <p style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-dim);">Total Balance</p>
-              <h2 style="font-size: 3rem; margin: 10px 0;">{{currencySymbol()}}{{s.balance.toLocaleString()}}</h2>
-              <div style="display: flex; gap: 20px;">
-                <div>
-                  <p style="font-size: 0.8rem; color: var(--text-dim);">Monthly Profit</p>
-                  <h4 style="font-size: 1.2rem;">{{s.profit >= 0 ? '+' : ''}}{{currencySymbol()}}{{s.profit.toLocaleString()}}</h4>
-                </div>
-                <div style="width: 1px; background: var(--border-glass);"></div>
-                <div>
-                  <p style="font-size: 0.8rem; color: var(--text-dim);">Income</p>
-                  <h4 class="blue-glow" style="font-size: 1.2rem;">{{currencySymbol()}}{{s.income.toLocaleString()}}</h4>
-                </div>
-                <div style="width: 1px; background: var(--border-glass);"></div>
-                <div>
-                  <p style="font-size: 0.8rem; color: var(--text-dim);">Expense</p>
-                  <h4 class="purple-glow" style="font-size: 1.2rem;">{{currencySymbol()}}{{s.expense.toLocaleString()}}</h4>
-                </div>
+        <div class="glass-card balance-card">
+          <div style="position: relative; z-index: 1;">
+            <p style="text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; color: var(--text-dim);">Total
+              Balance</p>
+            <h2 style="font-size: 3rem; margin: 10px 0;">{{currencySymbol()}}{{s.balance.toLocaleString()}}</h2>
+            <div style="display: flex; gap: 20px;">
+              <div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Monthly Profit</p>
+                <h4 style="font-size: 1.2rem;">{{s.profit >= 0 ? '+' :
+                  ''}}{{currencySymbol()}}{{s.profit.toLocaleString()}}</h4>
+              </div>
+              <div style="width: 1px; background: var(--border-glass);"></div>
+              <div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Income</p>
+                <h4 class="blue-glow" style="font-size: 1.2rem;">{{currencySymbol()}}{{s.income.toLocaleString()}}</h4>
+              </div>
+              <div style="width: 1px; background: var(--border-glass);"></div>
+              <div>
+                <p style="font-size: 0.8rem; color: var(--text-dim);">Expense</p>
+                <h4 class="purple-glow" style="font-size: 1.2rem;">{{currencySymbol()}}{{s.expense.toLocaleString()}}
+                </h4>
               </div>
             </div>
           </div>
+        </div>
         }
 
         <div class="glass-card">
           <h3 style="margin-bottom: 25px;">Monthly Spending Trends</h3>
           @if (chartData(); as cData) {
-            <app-base-chart id="spending-trend-chart" type="line"
-              [data]="cData" [options]="{
+          <app-base-chart id="spending-trend-chart" type="line" [data]="cData" [options]="{
                 plugins: { legend: { display: false } },
                 scales: {
                   y: { 
@@ -95,7 +103,7 @@
                   }
                 }
               }">
-            </app-base-chart>
+          </app-base-chart>
           }
         </div>
       </div>
@@ -104,25 +112,26 @@
         <div class="glass-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3>Savings Goals</h3>
-            <a routerLink="/savings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem;">View All</a>
+            <a routerLink="/savings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem;">View
+              All</a>
           </div>
           <div style="display: flex; flex-direction: column; gap: 15px;">
             @let goals = savingsGoals();
             @if (goals && goals.length > 0) {
-              @for (goal of goals.slice(0, 2); track goal.id) {
-                <div style="display: flex; flex-direction: column; gap: 5px;">
-                  <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                    <span>{{goal.name}}</span>
-                    <b>{{Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100)}}%</b>
-                  </div>
-                  <div class="progress-bar" style="height: 6px;">
-                    <div class="progress-fill"
-                      [style.width.%]="Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100)"></div>
-                  </div>
-                </div>
-              }
+            @for (goal of goals.slice(0, 2); track goal.id) {
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
+                <span>{{goal.name}}</span>
+                <b>{{Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100)}}%</b>
+              </div>
+              <div class="progress-bar" style="height: 6px;">
+                <div class="progress-fill"
+                  [style.width.%]="Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100)"></div>
+              </div>
+            </div>
+            }
             } @else {
-              <p style="color: var(--text-dim); font-size: 0.9rem;">No active goals.</p>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">No active goals.</p>
             }
           </div>
         </div>
@@ -130,34 +139,42 @@
         <div class="glass-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3>Accounts</h3>
-            <a routerLink="/accounts" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem;">Manage</a>
+            <a routerLink="/accounts"
+              style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem;">Manage</a>
           </div>
           <div style="display: flex; flex-direction: column; gap: 12px;">
             @for (acc of accounts().slice(0, 3); track acc.id) {
-              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
-                <span style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
-                  <i class="fas" [class]="acc.type === 'credit' ? 'fa-credit-card' : acc.type === 'savings' ? 'fa-piggy-bank' : acc.type === 'cash' ? 'fa-coins' : 'fa-university'" style="color: var(--primary-blue); width: 16px;"></i>
-                  {{acc.name}}
-                </span>
-                <b [style.color]="acc.currentBalance >= 0 ? 'var(--text)' : '#ff4d4d'">{{currencySymbol()}}{{acc.currentBalance.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</b>
-              </div>
+            <div
+              style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; border-radius: 8px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05);">
+              <span style="display: flex; align-items: center; gap: 10px; font-size: 0.9rem;">
+                <i class="fas"
+                  [class]="acc.type === 'credit' ? 'fa-credit-card' : acc.type === 'savings' ? 'fa-piggy-bank' : acc.type === 'cash' ? 'fa-coins' : 'fa-university'"
+                  style="color: var(--primary-blue); width: 16px;"></i>
+                {{acc.name}}
+              </span>
+              <b [style.color]="acc.currentBalance >= 0 ? 'var(--text)' : '#ff4d4d'">{{currencySymbol()}}{{acc.currentBalance.toLocaleString(undefined,
+                {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</b>
+            </div>
             }
           </div>
         </div>
 
         <div class="glass-card">
-          <h3 style="margin-bottom: 20px;">Top Categories</h3>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+            <h3>Top Categories</h3>
+            <button (click)="toggleCatModal()" style="background: none; border: none; color: var(--primary-blue); cursor: pointer; font-size: 0.8rem; font-weight: 600;">Manage</button>
+          </div>
           <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
             @let topCats = topCategories();
             @if (topCats && topCats.length > 0) {
-              @for (cat of topCats; track cat.name) {
-                <li style="display: flex; justify-content: space-between;">
-                  <span><i class="fas fa-tag blue-glow" style="width: 25px;"></i> {{cat.name}}</span>
-                  <b>{{cat.percent}}%</b>
-                </li>
-              }
+            @for (cat of topCats; track cat.name) {
+            <li style="display: flex; justify-content: space-between;">
+              <span><i class="fas fa-tag blue-glow" style="width: 25px;"></i> {{cat.name}}</span>
+              <b>{{cat.percent}}%</b>
+            </li>
+            }
             } @else {
-              <p style="color: var(--text-dim)">No expenses yet.</p>
+            <p style="color: var(--text-dim)">No expenses yet.</p>
             }
           </ul>
         </div>
@@ -183,28 +200,102 @@
             <tbody>
               @let txs = recentTransactions();
               @if (txs && txs.length > 0) {
-                @for (t of txs; track t.id) {
-                  <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 15px 0;">{{t.vendor}}</td>
-                    <td style="padding: 15px 0;">{{t.date}}</td>
-                    <td style="padding: 15px 0;" [class]="t.type === 'income' ? 'blue-glow' : 'purple-glow'">
-                      {{ t.amount | transactionAmount: t.type: currencySymbol() }}
-                    </td>
-                    <td style="padding: 15px 0;">
-                      <span
-                        style="padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); font-size: 0.75rem;">Completed</span>
-                    </td>
-                  </tr>
-                }
+              @for (t of txs; track t.id) {
+              <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                <td style="padding: 15px 0;">{{t.vendor}}</td>
+                <td style="padding: 15px 0;">{{t.date}}</td>
+                <td style="padding: 15px 0;" [class]="t.type === 'income' ? 'blue-glow' : 'purple-glow'">
+                  {{ t.amount | transactionAmount: t.type: currencySymbol() }}
+                </td>
+                <td style="padding: 15px 0;">
+                  <span
+                    style="padding: 4px 8px; border-radius: 4px; background: rgba(255,255,255,0.05); font-size: 0.75rem;">Completed</span>
+                </td>
+              </tr>
+              }
               } @else {
-                <tr>
-                  <td colspan="4" style="padding: 20px; text-align: center; color: var(--text-dim);">No transactions yet.</td>
-                </tr>
+              <tr>
+                <td colspan="4" style="padding: 20px; text-align: center; color: var(--text-dim);">No transactions yet.
+                </td>
+              </tr>
               }
             </tbody>
           </table>
         </div>
       </div>
     </div>
+  @if (isCatModalOpen()) {
+    <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
+      <div class="modal-container" style="max-width: 600px; width: 90%;">
+        <div class="modal-header">
+          <h2>Manage Categories</h2>
+          <button class="modal-close" (click)="toggleCatModal()">×</button>
+        </div>
+        
+        <!-- Add Category Form -->
+        <form [formGroup]="catForm" (ngSubmit)="handleAddCategory()" style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: flex-end;">
+            <div class="form-group" style="margin: 0;">
+              <label>Category Name</label>
+              <input type="text" formControlName="name" class="form-control" placeholder="e.g. Health, Gift">
+            </div>
+            <div class="form-group" style="margin: 0;">
+              <label>Type</label>
+              <select formControlName="type" class="form-control">
+                <option value="expense">Expense</option>
+                <option value="income">Income</option>
+              </select>
+            </div>
+            <button type="submit" [disabled]="!catForm.valid" class="btn-primary" 
+                    style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">
+              Add
+            </button>
+          </div>
+        </form>
+
+        <!-- Category Lists -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
+          <!-- Expense Categories -->
+          <div>
+            <h4 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--accent-purple); border-bottom: 1px solid rgba(188, 19, 254, 0.2); padding-bottom: 5px;">
+              Expense Categories
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              @for (cat of expenseCategories(); track cat) {
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; font-size: 0.85rem;">
+                  <span>{{cat}}</span>
+                  <button type="button" (click)="handleDeleteCategory(cat, 'expense')" 
+                          style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.8rem;"
+                          title="Delete category">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- Income Categories -->
+          <div>
+            <h4 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--primary-blue); border-bottom: 1px solid rgba(13, 89, 242, 0.2); padding-bottom: 5px;">
+              Income Categories
+            </h4>
+            <div style="display: flex; flex-direction: column; gap: 8px;">
+              @for (cat of incomeCategories(); track cat) {
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; font-size: 0.85rem;">
+                  <span>{{cat}}</span>
+                  <button type="button" (click)="handleDeleteCategory(cat, 'income')" 
+                          style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.8rem;"
+                          title="Delete category">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  }
   </main>
 </div>

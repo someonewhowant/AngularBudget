@@ -1,18 +1,23 @@
-import { Component, inject, computed, ChangeDetectionStrategy } from '@angular/core';
+import { Component, inject, computed, ChangeDetectionStrategy, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { BaseChartComponent } from '../base-chart/base-chart';
 import { TransactionAmountPipe } from '../../pipes/transaction-amount.pipe';
+import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [RouterLink, SidebarComponent, BaseChartComponent, TransactionAmountPipe],
+  imports: [RouterLink, CommonModule, ReactiveFormsModule, SidebarComponent, BaseChartComponent, TransactionAmountPipe],
   templateUrl: './dashboard.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent {
   private store = inject(StoreService);
+  private fb = inject(FormBuilder);
+  private toastService = inject(ToastService);
 
   user = this.store.user;
   summary = this.store.summary;
@@ -20,6 +25,47 @@ export class DashboardComponent {
   accounts = this.store.accountsWithBalance;
   currencySymbol = this.store.currencySymbol;
   insights = this.store.insights;
+  expenseCategories = this.store.expenseCategories;
+  incomeCategories = this.store.incomeCategories;
+
+  isCatModalOpen = signal(false);
+
+  catForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    type: ['expense', Validators.required]
+  });
+
+  toggleCatModal() {
+    this.isCatModalOpen.update(open => !open);
+    if (!this.isCatModalOpen()) {
+      this.catForm.reset({
+        name: '',
+        type: 'expense'
+      });
+    }
+  }
+
+  handleAddCategory() {
+    if (this.catForm.valid) {
+      const { name, type } = this.catForm.value;
+      if (type === 'expense') {
+        this.store.addExpenseCategory(name);
+      } else {
+        this.store.addIncomeCategory(name);
+      }
+      this.toastService.show(`Category "${name}" added successfully!`, 'success');
+      this.catForm.get('name')?.reset('');
+    }
+  }
+
+  handleDeleteCategory(cat: string, type: 'expense' | 'income') {
+    if (type === 'expense') {
+      this.store.deleteExpenseCategory(cat);
+    } else {
+      this.store.deleteIncomeCategory(cat);
+    }
+    this.toastService.show(`Category "${cat}" deleted!`, 'success');
+  }
 
   chartData = computed(() => {
     const transactions = this.store.transactions();

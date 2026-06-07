@@ -6,33 +6,83 @@
       <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Visual insights into your spending habits and financial growth.</p>
     </header>
 
+    <!-- Dynamic Filters Bar -->
+    <div class="glass-card" style="margin-bottom: 24px; padding: 20px; display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-end; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass);">
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Time Period</label>
+        <select (change)="selectedPeriod.set($any($event.target).value)" [value]="selectedPeriod()" class="form-control" style="width: 100%;">
+          <option value="thisMonth">This Month</option>
+          <option value="lastMonth">Last Month</option>
+          <option value="last3Months">Last 3 Months</option>
+          <option value="last6Months">Last 6 Months</option>
+          <option value="yearToDate">Year to Date</option>
+          <option value="custom">Custom Range...</option>
+        </select>
+      </div>
+
+      @if (selectedPeriod() === 'custom') {
+        <div style="flex: 1; min-width: 130px;">
+          <label style="display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Start Date</label>
+          <input type="date" (input)="customStartDate.set($any($event.target).value)" [value]="customStartDate()" class="form-control" style="width: 100%;">
+        </div>
+        <div style="flex: 1; min-width: 130px;">
+          <label style="display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">End Date</label>
+          <input type="date" (input)="customEndDate.set($any($event.target).value)" [value]="customEndDate()" class="form-control" style="width: 100%;">
+        </div>
+      }
+
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Account</label>
+        <select (change)="selectedAccount.set($any($event.target).value)" [value]="selectedAccount()" class="form-control" style="width: 100%;">
+          <option value="all">All Accounts</option>
+          @for (acc of accounts(); track acc.id) {
+            <option [value]="acc.name">{{acc.name}}</option>
+          }
+        </select>
+      </div>
+
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 0.75rem; color: var(--text-dim); margin-bottom: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Category</label>
+        <select (change)="selectedCategory.set($any($event.target).value)" [value]="selectedCategory()" class="form-control" style="width: 100%;">
+          <option value="all">All Categories</option>
+          @for (cat of allCategories(); track cat) {
+            <option [value]="cat">{{cat}}</option>
+          }
+        </select>
+      </div>
+
+      <button (click)="resetFilters()" style="padding: 10px 18px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; height: 40px;">
+        Reset
+      </button>
+    </div>
+
     <div class="grid" style="grid-template-columns: repeat(2, 1fr); gap: 24px;">
       <!-- Summary Cards -->
       <div style="grid-column: span 2; display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px;">
-        @if (summary(); as s) {
+        @if (filteredSummary(); as s) {
           <div class="glass-card" style="padding: 20px;">
             <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Total Income</p>
-            <h3 style="font-size: 1.8rem; margin: 10px 0;">{{currencySymbol()}}{{s.income.toLocaleString()}}</h3>
-            <div style="color: #4cd137; font-size: 0.8rem;"><i class="fas fa-arrow-up"></i> All time</div>
+            <h3 style="font-size: 1.8rem; margin: 10px 0;">{{currencySymbol()}}{{s.income.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</h3>
+            <div style="color: #4cd137; font-size: 0.8rem;"><i class="fas fa-arrow-up"></i> Filtered</div>
           </div>
           <div class="glass-card" style="padding: 20px;">
             <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Total Expense</p>
-            <h3 style="font-size: 1.8rem; margin: 10px 0;">{{currencySymbol()}}{{s.expense.toLocaleString()}}</h3>
-            <div style="color: #ff4d4d; font-size: 0.8rem;"><i class="fas fa-arrow-down"></i> All time</div>
+            <h3 style="font-size: 1.8rem; margin: 10px 0;">{{currencySymbol()}}{{s.expense.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}</h3>
+            <div style="color: #ff4d4d; font-size: 0.8rem;"><i class="fas fa-arrow-down"></i> Filtered</div>
           </div>
           <div class="glass-card" style="padding: 20px;">
             <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Net Profit</p>
             <h3 [style.color]="s.profit >= 0 ? '#4cd137' : '#ff4d4d'" style="font-size: 1.8rem; margin: 10px 0;">
-              {{s.profit >= 0 ? '+' : ''}}{{currencySymbol()}}{{s.profit.toLocaleString()}}
+              {{s.profit >= 0 ? '+' : ''}}{{currencySymbol()}}{{s.profit.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}}
             </h3>
-            <div style="font-size: 0.8rem; color: var(--text-dim);">Financial health</div>
+            <div style="font-size: 0.8rem; color: var(--text-dim);">Filtered health</div>
           </div>
           <div class="glass-card" style="padding: 20px;">
             <p style="color: var(--text-dim); font-size: 0.8rem; text-transform: uppercase;">Savings Rate</p>
             <h3 style="font-size: 1.8rem; margin: 10px 0;">
-              {{s.income > 0 ? ((s.profit / s.income) * 100).toFixed(1) : '0'}}%
+              {{s.savingsRate.toFixed(1)}}%
             </h3>
-            <div style="font-size: 0.8rem; color: var(--text-dim);">Of total income</div>
+            <div style="font-size: 0.8rem; color: var(--text-dim);">Filtered income</div>
           </div>
         }
       </div>

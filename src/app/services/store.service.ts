@@ -276,6 +276,15 @@ export class StoreService {
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
+      const savedExpense = localStorage.getItem('expenseCategories');
+      if (savedExpense) {
+        this.expenseCategories.set(JSON.parse(savedExpense));
+      }
+      const savedIncome = localStorage.getItem('incomeCategories');
+      if (savedIncome) {
+        this.incomeCategories.set(JSON.parse(savedIncome));
+      }
+
       effect(() => {
         const state = this.stateSignal();
         localStorage.setItem('transactions', JSON.stringify(state.transactions));
@@ -474,6 +483,41 @@ export class StoreService {
     this.updateState({
       user: { ...this.stateSignal().user, ...userData }
     });
+  }
+
+  // Categories Management
+  addExpenseCategory(category: string) {
+    const trimmed = category.trim();
+    if (trimmed && !this.expenseCategories().includes(trimmed)) {
+      this.expenseCategories.update(cats => [...cats, trimmed]);
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem('expenseCategories', JSON.stringify(this.expenseCategories()));
+      }
+    }
+  }
+
+  deleteExpenseCategory(category: string) {
+    this.expenseCategories.update(cats => cats.filter(c => c !== category));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('expenseCategories', JSON.stringify(this.expenseCategories()));
+    }
+  }
+
+  addIncomeCategory(category: string) {
+    const trimmed = category.trim();
+    if (trimmed && !this.incomeCategories().includes(trimmed)) {
+      this.incomeCategories.update(cats => [...cats, trimmed]);
+      if (isPlatformBrowser(this.platformId)) {
+        localStorage.setItem('incomeCategories', JSON.stringify(this.incomeCategories()));
+      }
+    }
+  }
+
+  deleteIncomeCategory(category: string) {
+    this.incomeCategories.update(cats => cats.filter(c => c !== category));
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('incomeCategories', JSON.stringify(this.incomeCategories()));
+    }
   }
 
   resetData() {

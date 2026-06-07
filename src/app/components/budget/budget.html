@@ -52,7 +52,13 @@
         <div class="glass-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3>Overall Savings Progress</h3>
-            <a routerLink="/savings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem;">Manage Goals</a>
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <button (click)="toggleGoalModal()" style="background: none; border: none; color: var(--primary-blue); cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 4px;">
+                <i class="fas fa-plus"></i> New Goal
+              </button>
+              <span style="color: rgba(255,255,255,0.2);">|</span>
+              <a routerLink="/savings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem; font-weight: 600;">View All</a>
+            </div>
           </div>
           <div style="text-align: center; padding: 10px 0;">
             <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 5px;">{{info.progressPercent}}%</div>
@@ -67,12 +73,45 @@
             <span><span style="color: var(--text-dim)">Target: </span> {{currencySymbol()}}{{info.totalGoal.toLocaleString()}}</span>
           </div>
           <div
-            style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue);">
+            style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue); margin-bottom: 25px;">
             <p style="font-size: 0.85rem;">
               {{info.remaining > 0
               ? 'You are ' + currencySymbol() + info.remaining.toLocaleString() + ' away from your total target! 🚀'
               : "Congratulations! You've reached your total savings goal! 🥳"}}
             </p>
+          </div>
+
+          <!-- Active Goals List -->
+          <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+            <h4 style="margin-bottom: 15px; font-size: 0.95rem; color: var(--text-dim);">My Savings Goals</h4>
+            <div style="display: flex; flex-direction: column; gap: 15px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+              @for (goal of savingsGoals(); track goal.id) {
+                <div style="padding: 12px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); border-radius: 8px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <div>
+                      <span style="font-weight: 600; font-size: 0.9rem;">{{goal.name}}</span>
+                      <span style="font-size: 0.75rem; color: var(--text-dim); margin-left: 8px; background: rgba(255,255,255,0.05); padding: 2px 6px; border-radius: 4px;">{{goal.category}}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                      <button (click)="openAddFunds(goal)" class="blue-glow" style="background: none; border: none; font-size: 0.8rem; cursor: pointer; font-weight: 600; padding: 0;" title="Add Funds">+ Fund</button>
+                      <button (click)="toggleGoalModal(goal)" style="background: none; border: none; color: var(--text-dim); font-size: 0.8rem; cursor: pointer; padding: 0;" title="Edit"><i class="fas fa-edit"></i></button>
+                      <button (click)="confirmDeleteGoal(goal.id)" style="background: none; border: none; color: #ff4d4d; font-size: 0.8rem; cursor: pointer; padding: 0;" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                  </div>
+                  
+                  <div class="progress-bar" style="height: 6px; background: rgba(255,255,255,0.05); margin-bottom: 6px;">
+                    <div class="progress-fill" [style.width.%]="getProgress(goal)" style="background: var(--primary-blue);"></div>
+                  </div>
+                  
+                  <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-dim);">
+                    <span>{{currencySymbol()}}{{goal.currentAmount.toLocaleString()}} / {{currencySymbol()}}{{goal.targetAmount.toLocaleString()}}</span>
+                    <b>{{getProgress(goal)}}%</b>
+                  </div>
+                </div>
+              } @empty {
+                <p style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 10px 0;">No active goals yet.</p>
+              }
+            </div>
           </div>
         </div>
       }
@@ -122,6 +161,89 @@
           <button type="submit" [disabled]="!budgetForm.valid" class="btn-primary"
             style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer;">Save Budget</button>
         </form>
+      </div>
+    </div>
+  }
+
+  <!-- Add/Edit Savings Goal Modal -->
+  @if (isGoalModalOpen()) {
+    <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
+      <div class="modal-container">
+        <div class="modal-header">
+          <h2>{{ editingGoal() ? 'Edit Savings Goal' : 'Create Savings Goal' }}</h2>
+          <button class="modal-close" (click)="toggleGoalModal()">×</button>
+        </div>
+        <form [formGroup]="goalForm" (ngSubmit)="handleGoalSubmit()">
+          <div class="form-group">
+            <label>Goal Name</label>
+            <input type="text" formControlName="name" class="form-control" placeholder="e.g. New Car, Vacation">
+          </div>
+          <div class="form-group">
+            <label>Target Amount ({{currencySymbol()}})</label>
+            <input type="number" formControlName="targetAmount" class="form-control" min="1">
+          </div>
+          <div class="form-group">
+            <label>Current Saved Amount ({{currencySymbol()}})</label>
+            <input type="number" formControlName="currentAmount" class="form-control" min="0">
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <input type="text" formControlName="category" class="form-control" placeholder="e.g. Travel, Electronics">
+          </div>
+          <div class="form-group">
+            <label>Target Date (Optional)</label>
+            <input type="date" formControlName="deadline" class="form-control">
+          </div>
+          <button type="submit" [disabled]="!goalForm.valid" class="btn-primary"
+            style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">
+            {{ editingGoal() ? 'Update Goal' : 'Create Goal' }}
+          </button>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Add Funds Modal -->
+  @if (isAddFundsOpen()) {
+    <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
+      <div class="modal-container" style="max-width: 400px;">
+        <div class="modal-header">
+          <h2>Add Funds</h2>
+          <button class="modal-close" (click)="closeAddFunds()">×</button>
+        </div>
+        @if (activeGoal(); as goal) {
+          <div style="margin-bottom: 20px;">
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 5px;">Adding money to:</p>
+            <h3 style="margin: 0;">{{goal.name}}</h3>
+          </div>
+          
+          <div class="form-group">
+            <label>Amount to Add ({{currencySymbol()}})</label>
+            <input type="number" [value]="fundsAmount()" (input)="handleFundsInput($event)" class="form-control" min="0.01" step="0.01" autofocus>
+          </div>
+          
+          <div style="display: flex; gap: 12px; margin-top: 25px;">
+            <button type="button" (click)="closeAddFunds()" class="btn-secondary" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer;">Cancel</button>
+            <button type="button" (click)="submitAddFunds()" [disabled]="fundsAmount() <= 0" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">Add Funds</button>
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- Confirm Delete Modal -->
+  @if (isConfirmDeleteOpen()) {
+    <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
+      <div class="modal-container" style="max-width: 400px; text-align: center; padding: 30px;">
+        <div style="color: #ff4d4d; font-size: 3rem; margin-bottom: 15px;">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2>Delete Goal?</h2>
+        <p style="color: var(--text-dim); margin-bottom: 25px;">Are you sure you want to delete this savings goal? This action cannot be undone.</p>
+        <div style="display: flex; gap: 12px;">
+          <button (click)="closeConfirmDelete()" class="btn-secondary" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer;">Cancel</button>
+          <button (click)="executeDeleteGoal()" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #ff4d4d; color: white; cursor: pointer; font-weight: 600;">Delete</button>
+        </div>
       </div>
     </div>
   }
