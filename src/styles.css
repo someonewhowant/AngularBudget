@@ -1,63 +1,66 @@
 @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap');
 
-:root {
-    --bg-dark: #050505;
-    --card-bg: rgba(255, 255, 255, 0.05);
-    --border-glass: rgba(255, 255, 255, 0.1);
-    --primary-blue: #0d59f2;
-    --accent-purple: #bc13fe;
-    --text-main: #ffffff;
-    --text-dim: rgba(255, 255, 255, 0.6);
+:root, body.theme-dark {
+    /* Sleek Obsidian (Dark) */
+    --bg-dark: #0d1117;
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --border-glass: rgba(255, 255, 255, 0.08);
+    --primary-blue: #2ea043; /* Emerald green highlight */
+    --accent-purple: #58a6ff; /* Clean blue highlight */
+    --text-main: #c9d1d9;
+    --text-dim: #8b949e;
     --sidebar-w: 240px;
-    --sidebar-bg: rgba(10, 10, 10, 0.8);
-    --modal-bg: rgba(20, 20, 20, 0.95);
+    --sidebar-bg: rgba(13, 17, 23, 0.85);
+    --modal-bg: rgba(22, 27, 34, 0.95);
     --input-bg: rgba(255, 255, 255, 0.05);
-    --input-focus-bg: rgba(255, 255, 255, 0.1);
+    --input-focus-bg: rgba(88, 166, 255, 0.1);
     --overlay-bg: rgba(0, 0, 0, 0.7);
-    --accent-gradient: linear-gradient(135deg, rgba(13, 89, 242, 0.2) 0%, rgba(188, 19, 254, 0.2) 100%);
-    --btn-hover: #0b4ecd;
-    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    --accent-gradient: linear-gradient(135deg, rgba(46, 160, 67, 0.2) 0%, rgba(88, 166, 255, 0.2) 100%);
+    --btn-hover: #238636;
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23c9d1d9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
     --radius: 12px;
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 body.theme-light {
-    --bg-dark: #f0f2f5;
-    --card-bg: #ffffff;
-    --border-glass: rgba(0, 0, 0, 0.1);
-    --primary-blue: #0062ff;
-    --accent-purple: #8a2be2;
-    --text-main: #1a1a1a;
-    --text-dim: #666666;
-    --sidebar-bg: #ffffff;
-    --modal-bg: #ffffff;
-    --input-bg: rgba(0, 0, 0, 0.05);
-    --input-focus-bg: #f9f9f9;
-    --overlay-bg: rgba(0, 0, 0, 0.4);
-    --accent-gradient: linear-gradient(135deg, rgba(0, 98, 255, 0.1) 0%, rgba(138, 43, 226, 0.1) 100%);
-    --btn-hover: #0056e0;
-    --card-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    /* Arctic Frost (Light Glassmorphism) */
+    --bg-dark: #e8eef2;
+    --card-bg: rgba(255, 255, 255, 0.6);
+    --border-glass: rgba(255, 255, 255, 0.8);
+    --primary-blue: #3b82f6;
+    --accent-purple: #8b5cf6;
+    --text-main: #1e293b;
+    --text-dim: #64748b;
+    --sidebar-bg: rgba(248, 250, 252, 0.7);
+    --modal-bg: rgba(255, 255, 255, 0.95);
+    --input-bg: rgba(255, 255, 255, 0.8);
+    --input-focus-bg: #ffffff;
+    --overlay-bg: rgba(15, 23, 42, 0.4);
+    --accent-gradient: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(139, 92, 246, 0.15) 100%);
+    --btn-hover: #2563eb;
+    --card-shadow: 0 8px 32px rgba(148, 163, 184, 0.2);
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231e293b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 body.theme-blue {
-    --bg-dark: #0a192f;
-    --card-bg: rgba(23, 42, 69, 0.7);
-    --border-glass: rgba(100, 255, 218, 0.1);
-    --primary-blue: #64ffda;
-    --accent-purple: #48cae4;
-    --text-main: #ccd6f6;
-    --text-dim: #8892b0;
-    --sidebar-bg: rgba(10, 25, 47, 0.8);
-    --modal-bg: rgba(20, 42, 72, 0.95);
-    --input-bg: rgba(255, 255, 255, 0.05);
-    --input-focus-bg: rgba(100, 255, 218, 0.05);
-    --overlay-bg: rgba(2, 12, 27, 0.8);
-    --accent-gradient: linear-gradient(135deg, rgba(100, 255, 218, 0.1) 0%, rgba(72, 202, 228, 0.1) 100%);
-    --btn-hover: #45e3c0;
-    --card-shadow: 0 8px 32px rgba(2, 12, 27, 0.4);
-    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2364ffda' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    /* Cyber Ocean (Neon Blue/Purple) */
+    --bg-dark: #0a0a1a;
+    --card-bg: rgba(13, 13, 38, 0.5);
+    --border-glass: rgba(0, 242, 254, 0.2);
+    --primary-blue: #00f2fe;
+    --accent-purple: #fe00f2;
+    --text-main: #e0f7fa;
+    --text-dim: #8ba9ce;
+    --sidebar-bg: rgba(10, 10, 26, 0.8);
+    --modal-bg: rgba(15, 15, 45, 0.95);
+    --input-bg: rgba(255, 255, 255, 0.03);
+    --input-focus-bg: rgba(0, 242, 254, 0.1);
+    --overlay-bg: rgba(0, 0, 10, 0.8);
+    --accent-gradient: linear-gradient(135deg, rgba(0, 242, 254, 0.2) 0%, rgba(254, 0, 242, 0.2) 100%);
+    --btn-hover: #00c4cc;
+    --card-shadow: 0 8px 32px rgba(0, 242, 254, 0.15);
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23e0f7fa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
 }
 
 * {

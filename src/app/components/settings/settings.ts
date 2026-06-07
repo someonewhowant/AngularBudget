@@ -26,9 +26,9 @@ export class SettingsComponent implements OnInit {
   });
 
   themes = [
-    { id: 'dark', name: 'Deep Space (Dark)', color: '#050505' },
-    { id: 'light', name: 'Arctic (Light)', color: '#f0f2f5' },
-    { id: 'blue', name: 'Cyber Ocean (Blue)', color: '#0a192f' }
+    { id: 'dark', name: 'Sleek Obsidian', color: '#0d1117' },
+    { id: 'light', name: 'Arctic Frost', color: '#e8eef2' },
+    { id: 'blue', name: 'Cyber Ocean', color: '#0a0a1a' }
   ];
 
   ngOnInit(): void {
