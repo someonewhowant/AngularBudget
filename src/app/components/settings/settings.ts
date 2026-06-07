@@ -1,13 +1,15 @@
 import { Component, OnInit, inject, ChangeDetectionStrategy, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { StoreService } from '../../services/store.service';
 import { SidebarComponent } from '../sidebar/sidebar';
 import { ToastService } from '../../services/toast.service';
+import { Account } from '../../models/budget.models';
 
 @Component({
   selector: 'app-settings',
-  imports: [ReactiveFormsModule, SidebarComponent],
+  imports: [CommonModule, ReactiveFormsModule, SidebarComponent],
   templateUrl: './settings.html',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
@@ -19,8 +21,20 @@ export class SettingsComponent implements OnInit {
   
   state = this.store.state;
   currencies = this.store.currencies;
+  accounts = this.store.accountsWithBalance;
+  currencySymbol = this.store.currencySymbol;
 
   isConfirmResetOpen = signal(false);
+  isAccountModalOpen = signal(false);
+  isConfirmDeleteAccountOpen = signal(false);
+  editingAccount = signal<Account | null>(null);
+  accountToDelete = signal<string | null>(null);
+
+  accountForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    type: ['checking', Validators.required],
+    initialBalance: [0, [Validators.required, Validators.min(0)]]
+  });
   
   profileForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
@@ -177,5 +191,73 @@ export class SettingsComponent implements OnInit {
     URL.revokeObjectURL(url);
     
     this.toastService.show('Transactions exported to CSV successfully!', 'success');
+  }
+
+  openAccountModal(account?: Account) {
+    this.isAccountModalOpen.set(true);
+    if (account) {
+      this.editingAccount.set(account);
+      this.accountForm.patchValue({
+        name: account.name,
+        type: account.type,
+        initialBalance: account.initialBalance
+      });
+    } else {
+      this.editingAccount.set(null);
+      this.accountForm.reset({
+        name: '',
+        type: 'checking',
+        initialBalance: 0
+      });
+    }
+  }
+
+  closeAccountModal() {
+    this.isAccountModalOpen.set(false);
+    this.editingAccount.set(null);
+  }
+
+  handleAccountSubmit() {
+    if (this.accountForm.valid) {
+      const accountData = this.accountForm.value;
+      const currentEditing = this.editingAccount();
+      if (currentEditing) {
+        this.store.updateAccount({ ...currentEditing, ...accountData });
+        this.toastService.show('Account updated successfully!', 'success');
+      } else {
+        this.store.addAccount(accountData);
+        this.toastService.show('Account created successfully!', 'success');
+      }
+      this.closeAccountModal();
+    }
+  }
+
+  confirmDeleteAccount(id: string) {
+    this.accountToDelete.set(id);
+    this.isConfirmDeleteAccountOpen.set(true);
+  }
+
+  closeConfirmDeleteAccount() {
+    this.isConfirmDeleteAccountOpen.set(false);
+    this.accountToDelete.set(null);
+  }
+
+  executeDeleteAccount() {
+    const id = this.accountToDelete();
+    if (id !== null) {
+      this.store.deleteAccount(id);
+      this.closeConfirmDeleteAccount();
+      this.toastService.show('Account deleted successfully!', 'success');
+    }
+  }
+
+  getAccountTypeIcon(type: string): string {
+    switch (type) {
+      case 'checking': return 'fa-university';
+      case 'savings': return 'fa-piggy-bank';
+      case 'credit': return 'fa-credit-card';
+      case 'cash': return 'fa-coins';
+      default: return 'fa-wallet';
+    }
   }
 }
