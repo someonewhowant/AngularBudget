@@ -18,6 +18,7 @@ export interface UserProfile {
   balance: number;
   currency?: string;
   hasCompletedOnboarding?: boolean;
+  budgetStartDay?: number;
 }
 
 export interface SavingsGoal {

@@ -23,6 +23,8 @@ export class SettingsComponent implements OnInit {
   currencies = this.store.currencies;
   accounts = this.store.accountsWithBalance;
   currencySymbol = this.store.currencySymbol;
+  expenseCategories = this.store.expenseCategories;
+  incomeCategories = this.store.incomeCategories;
 
   isConfirmResetOpen = signal(false);
   isAccountModalOpen = signal(false);
@@ -38,7 +40,13 @@ export class SettingsComponent implements OnInit {
   
   profileForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
-    currency: ['USD', Validators.required]
+    currency: ['USD', Validators.required],
+    budgetStartDay: [1, [Validators.required, Validators.min(1), Validators.max(31)]]
+  });
+
+  catForm: FormGroup = this.fb.group({
+    name: ['', Validators.required],
+    type: ['expense', Validators.required]
   });
 
   themes = [
@@ -52,7 +60,8 @@ export class SettingsComponent implements OnInit {
     if (user) {
       this.profileForm.patchValue({
         name: user.name,
-        currency: user.currency || 'USD'
+        currency: user.currency || 'USD',
+        budgetStartDay: user.budgetStartDay || 1
       }, { emitEvent: false });
     }
   }
@@ -61,7 +70,8 @@ export class SettingsComponent implements OnInit {
     if (this.profileForm.valid) {
       this.store.updateProfile({
         name: this.profileForm.value.name,
-        currency: this.profileForm.value.currency
+        currency: this.profileForm.value.currency,
+        budgetStartDay: Number(this.profileForm.value.budgetStartDay)
       });
       this.toastService.show('Profile updated successfully!', 'success');
     }
@@ -70,6 +80,39 @@ export class SettingsComponent implements OnInit {
   handleThemeChange(themeId: string) {
     this.store.setTheme(themeId);
     this.toastService.show(`Theme changed to ${themeId}!`, 'info');
+  }
+
+  handleAddCategory() {
+    if (this.catForm.valid) {
+      const { name, type } = this.catForm.value;
+      const cleanName = name.trim();
+      if (!cleanName) return;
+      
+      if (type === 'expense') {
+        if (this.expenseCategories().some(c => c.toLowerCase() === cleanName.toLowerCase())) {
+          this.toastService.show(`Expense category "${cleanName}" already exists!`, 'info');
+          return;
+        }
+        this.store.addExpenseCategory(cleanName);
+      } else {
+        if (this.incomeCategories().some(c => c.toLowerCase() === cleanName.toLowerCase())) {
+          this.toastService.show(`Income category "${cleanName}" already exists!`, 'info');
+          return;
+        }
+        this.store.addIncomeCategory(cleanName);
+      }
+      this.toastService.show(`Category "${cleanName}" added successfully!`, 'success');
+      this.catForm.get('name')?.reset('');
+    }
+  }
+
+  handleDeleteCategory(cat: string, type: 'expense' | 'income') {
+    if (type === 'expense') {
+      this.store.deleteExpenseCategory(cat);
+    } else {
+      this.store.deleteIncomeCategory(cat);
+    }
+    this.toastService.show(`Category "${cat}" deleted!`, 'success');
   }
 
   confirmReset() {

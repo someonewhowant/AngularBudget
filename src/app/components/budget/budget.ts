@@ -133,7 +133,7 @@ export class BudgetComponent {
 
   budgetData = computed(() => {
     const budgets = this.store.budgets();
-    const transactions = this.store.transactions();
+    const transactions = this.store.currentCycleTransactions();
 
     return budgets.map(b => {
       const spent = transactions

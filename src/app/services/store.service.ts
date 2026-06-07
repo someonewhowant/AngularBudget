@@ -75,27 +75,69 @@ export class StoreService {
   readonly summary = computed(() => this.calculateSummary(this.stateSignal()));
   readonly recurringTransactions = computed(() => this.stateSignal().recurringTransactions || INITIAL_RECURRING);
 
+  readonly currentCycleBounds = computed(() => {
+    const user = this.stateSignal().user;
+    const startDay = user.budgetStartDay || 1;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    let startYear = today.getFullYear();
+    let startMonth = today.getMonth();
+    
+    const thisMonthLastDay = new Date(startYear, startMonth + 1, 0).getDate();
+    const clampedStartDayThisMonth = Math.min(startDay, thisMonthLastDay);
+    
+    if (today.getDate() < clampedStartDayThisMonth) {
+      startMonth -= 1;
+      if (startMonth < 0) {
+        startMonth = 11;
+        startYear -= 1;
+      }
+    }
+    
+    const start = this.getClampedDate(startYear, startMonth, startDay);
+    
+    let endMonth = startMonth + 1;
+    let endYear = startYear;
+    if (endMonth > 11) {
+      endMonth = 0;
+      endYear += 1;
+    }
+    const end = this.getClampedDate(endYear, endMonth, startDay);
+    
+    return { start, end };
+  });
+
+  readonly currentCycleTransactions = computed(() => {
+    const txs = this.transactions();
+    const bounds = this.currentCycleBounds();
+    const startTime = bounds.start.getTime();
+    const endTime = bounds.end.getTime();
+    
+    return txs.filter(t => {
+      if (!t.date) return false;
+      const txTime = new Date(t.date).getTime();
+      return txTime >= startTime && txTime < endTime;
+    });
+  });
+
+  private getClampedDate(year: number, month: number, day: number): Date {
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    return new Date(year, month, Math.min(day, lastDay), 0, 0, 0, 0);
+  }
+
   readonly insights = computed<FinancialInsight[]>(() => {
     const list: FinancialInsight[] = [];
     const state = this.stateSignal();
-    const transactions = state.transactions;
     const budgets = state.budgets;
     const goals = state.savingsGoals;
     const accounts = this.accountsWithBalance();
     const recurring = state.recurringTransactions || [];
     const symbol = this.currencySymbol();
 
-    const todayStr = new Date().toISOString().split('T')[0];
-    const todayParts = todayStr.split('-');
-    const currentYearStr = todayParts[0];
-    const currentMonthStr = todayParts[1];
-
-    // 1. Filter transactions for the current month
-    const thisMonthTxs = transactions.filter(t => {
-      if (!t.date) return false;
-      const parts = t.date.split('-');
-      return parts[0] === currentYearStr && parts[1] === currentMonthStr;
-    });
+    // 1. Filter transactions for the current month / cycle
+    const thisMonthTxs = this.currentCycleTransactions();
 
     // 2. Budget Warnings
     const categoryExpenses = thisMonthTxs
@@ -366,11 +408,14 @@ export class StoreService {
           budgets: JSON.parse(localStorage.getItem('budgets') || JSON.stringify(INITIAL_BUDGETS)),
           savingsGoals: JSON.parse(localStorage.getItem('savingsGoals') || JSON.stringify(INITIAL_SAVINGS_GOALS)),
           theme: localStorage.getItem('theme') || 'dark',
-          user: JSON.parse(localStorage.getItem('user') || JSON.stringify({
-            name: 'User',
-            balance: 24500,
-            currency: 'USD'
-          })),
+          user: {
+            budgetStartDay: 1,
+            ...JSON.parse(localStorage.getItem('user') || JSON.stringify({
+              name: 'User',
+              balance: 24500,
+              currency: 'USD'
+            }))
+          },
           accounts: JSON.parse(localStorage.getItem('accounts') || JSON.stringify(DEFAULT_ACCOUNTS)),
           recurringTransactions: JSON.parse(localStorage.getItem('recurringTransactions') || JSON.stringify(INITIAL_RECURRING))
         };
@@ -384,7 +429,7 @@ export class StoreService {
       budgets: INITIAL_BUDGETS,
       savingsGoals: INITIAL_SAVINGS_GOALS,
       theme: 'dark',
-      user: { name: 'User', balance: 24500, currency: 'USD' },
+      user: { name: 'User', balance: 24500, currency: 'USD', budgetStartDay: 1 },
       accounts: DEFAULT_ACCOUNTS,
       recurringTransactions: INITIAL_RECURRING
     };

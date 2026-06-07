@@ -23,6 +23,11 @@
                 }
               </select>
             </div>
+            <div class="form-group">
+              <label>Budget Cycle Start Day</label>
+              <input type="number" formControlName="budgetStartDay" class="form-control" min="1" max="31" placeholder="e.g. 1, 10, 15">
+              <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: 5px;">Define the day of the month when your monthly budget restarts (e.g. your payday).</p>
+            </div>
             <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">Save Profile</button>
           </form>
         </div>
@@ -80,6 +85,75 @@
                 No wallets or bank accounts found. Create one to get started.
               </div>
             }
+          </div>
+        </div>
+
+        <div class="glass-card" style="grid-column: span 2;">
+          <h3 style="margin-bottom: 20px;">Categories Management</h3>
+          <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
+            Customize your income and expense categories. Adding or deleting categories will instantly update them across the entire application.
+          </p>
+          
+          <!-- Add Category Form -->
+          <form [formGroup]="catForm" (ngSubmit)="handleAddCategory()" style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">
+            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: flex-end;">
+              <div class="form-group" style="margin: 0;">
+                <label>Category Name</label>
+                <input type="text" formControlName="name" class="form-control" placeholder="e.g. Health, Gift, Bonus">
+              </div>
+              <div class="form-group" style="margin: 0;">
+                <label>Type</label>
+                <select formControlName="type" class="form-control">
+                  <option value="expense">Expense</option>
+                  <option value="income">Income</option>
+                </select>
+              </div>
+              <button type="submit" [disabled]="!catForm.valid" class="btn-primary" 
+                      style="padding: 12px 24px; border-radius: 8px; border: none; font-weight: 600;">
+                <i class="fas fa-plus" style="margin-right: 5px;"></i> Add Category
+              </button>
+            </div>
+          </form>
+
+          <!-- Category Lists -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+            <!-- Expense Categories -->
+            <div>
+              <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: var(--accent-purple); border-bottom: 1px solid rgba(188, 19, 254, 0.2); padding-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-arrow-down" style="font-size: 0.85rem;"></i> Expense Categories
+              </h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                @for (cat of expenseCategories(); track cat) {
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.9rem;">
+                    <span>{{cat}}</span>
+                    <button type="button" (click)="handleDeleteCategory(cat, 'expense')" 
+                            style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.85rem;"
+                            title="Delete category">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <!-- Income Categories -->
+            <div>
+              <h4 style="margin: 0 0 12px 0; font-size: 1rem; color: var(--primary-blue); border-bottom: 1px solid rgba(13, 89, 242, 0.2); padding-bottom: 6px; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-arrow-up" style="font-size: 0.85rem;"></i> Income Categories
+              </h4>
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
+                @for (cat of incomeCategories(); track cat) {
+                  <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.9rem;">
+                    <span>{{cat}}</span>
+                    <button type="button" (click)="handleDeleteCategory(cat, 'income')" 
+                            style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.85rem;"
+                            title="Delete category">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
           </div>
         </div>
 

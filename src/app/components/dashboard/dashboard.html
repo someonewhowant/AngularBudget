@@ -162,7 +162,7 @@
         <div class="glass-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
             <h3>Top Categories</h3>
-            <button (click)="toggleCatModal()" style="background: none; border: none; color: var(--primary-blue); cursor: pointer; font-size: 0.8rem; font-weight: 600;">Manage</button>
+            <a routerLink="/settings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem; font-weight: 600;">Manage</a>
           </div>
           <ul style="list-style: none; display: flex; flex-direction: column; gap: 10px;">
             @let topCats = topCategories();
@@ -224,78 +224,5 @@
         </div>
       </div>
     </div>
-  @if (isCatModalOpen()) {
-    <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
-      <div class="modal-container" style="max-width: 600px; width: 90%;">
-        <div class="modal-header">
-          <h2>Manage Categories</h2>
-          <button class="modal-close" (click)="toggleCatModal()">×</button>
-        </div>
-        
-        <!-- Add Category Form -->
-        <form [formGroup]="catForm" (ngSubmit)="handleAddCategory()" style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-          <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 12px; align-items: flex-end;">
-            <div class="form-group" style="margin: 0;">
-              <label>Category Name</label>
-              <input type="text" formControlName="name" class="form-control" placeholder="e.g. Health, Gift">
-            </div>
-            <div class="form-group" style="margin: 0;">
-              <label>Type</label>
-              <select formControlName="type" class="form-control">
-                <option value="expense">Expense</option>
-                <option value="income">Income</option>
-              </select>
-            </div>
-            <button type="submit" [disabled]="!catForm.valid" class="btn-primary" 
-                    style="padding: 10px 20px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">
-              Add
-            </button>
-          </div>
-        </form>
-
-        <!-- Category Lists -->
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-height: 300px; overflow-y: auto; padding-right: 5px;">
-          <!-- Expense Categories -->
-          <div>
-            <h4 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--accent-purple); border-bottom: 1px solid rgba(188, 19, 254, 0.2); padding-bottom: 5px;">
-              Expense Categories
-            </h4>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              @for (cat of expenseCategories(); track cat) {
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; font-size: 0.85rem;">
-                  <span>{{cat}}</span>
-                  <button type="button" (click)="handleDeleteCategory(cat, 'expense')" 
-                          style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.8rem;"
-                          title="Delete category">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
-                </div>
-              }
-            </div>
-          </div>
-
-          <!-- Income Categories -->
-          <div>
-            <h4 style="margin: 0 0 10px 0; font-size: 0.95rem; color: var(--primary-blue); border-bottom: 1px solid rgba(13, 89, 242, 0.2); padding-bottom: 5px;">
-              Income Categories
-            </h4>
-            <div style="display: flex; flex-direction: column; gap: 8px;">
-              @for (cat of incomeCategories(); track cat) {
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 6px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 6px; font-size: 0.85rem;">
-                  <span>{{cat}}</span>
-                  <button type="button" (click)="handleDeleteCategory(cat, 'income')" 
-                          style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.8rem;"
-                          title="Delete category">
-                    <i class="fas fa-trash-alt"></i>
-                  </button>
-                </div>
-              }
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  }
   </main>
 </div>

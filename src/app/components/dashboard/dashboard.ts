@@ -25,47 +25,6 @@ export class DashboardComponent {
   accounts = this.store.accountsWithBalance;
   currencySymbol = this.store.currencySymbol;
   insights = this.store.insights;
-  expenseCategories = this.store.expenseCategories;
-  incomeCategories = this.store.incomeCategories;
-
-  isCatModalOpen = signal(false);
-
-  catForm: FormGroup = this.fb.group({
-    name: ['', Validators.required],
-    type: ['expense', Validators.required]
-  });
-
-  toggleCatModal() {
-    this.isCatModalOpen.update(open => !open);
-    if (!this.isCatModalOpen()) {
-      this.catForm.reset({
-        name: '',
-        type: 'expense'
-      });
-    }
-  }
-
-  handleAddCategory() {
-    if (this.catForm.valid) {
-      const { name, type } = this.catForm.value;
-      if (type === 'expense') {
-        this.store.addExpenseCategory(name);
-      } else {
-        this.store.addIncomeCategory(name);
-      }
-      this.toastService.show(`Category "${name}" added successfully!`, 'success');
-      this.catForm.get('name')?.reset('');
-    }
-  }
-
-  handleDeleteCategory(cat: string, type: 'expense' | 'income') {
-    if (type === 'expense') {
-      this.store.deleteExpenseCategory(cat);
-    } else {
-      this.store.deleteIncomeCategory(cat);
-    }
-    this.toastService.show(`Category "${cat}" deleted!`, 'success');
-  }
 
   chartData = computed(() => {
     const transactions = this.store.transactions();

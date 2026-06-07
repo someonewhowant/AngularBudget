@@ -67,7 +67,9 @@ export class ReportsComponent {
     let end: Date | null = null;
     
     if (period === 'thisMonth') {
-      start = new Date(now.getFullYear(), now.getMonth(), 1);
+      const bounds = this.store.currentCycleBounds();
+      start = bounds.start;
+      end = new Date(bounds.end.getTime() - 24 * 60 * 60 * 1000);
     } else if (period === 'lastMonth') {
       start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
       end = new Date(now.getFullYear(), now.getMonth(), 0);
