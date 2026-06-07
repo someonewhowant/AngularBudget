@@ -3,44 +3,52 @@
   <main class="main-content">
     <header class="section-title" style="display: flex; justify-content: space-between; align-items: center;">
       <div>
-        <h1>Budget Planning</h1>
-        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">Take control of your monthly spending.</p>
+        <h1>{{ store.t().budgetTitle }}</h1>
+        <p style="font-size: 1rem; color: var(--text-dim); margin-top: 5px;">{{ store.t().budgetSubtitle }}</p>
       </div>
       <button (click)="toggleModal()"
         style="padding: 12px 24px; background: var(--primary-blue); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 10px;">
         <i class="fas fa-plus"></i>
-        Set New Budget
+        {{ store.t().setNewBudget }}
       </button>
     </header>
 
     <div class="grid" style="grid-template-columns: 1fr 1fr;">
       <div style="grid-column: span 2;">
         <div class="glass-card">
-          <h3 style="margin-bottom: 25px;">Monthly Budget Overview</h3>
+          <h3 style="margin-bottom: 25px;">{{ store.t().monthlyBudgetOverview }}</h3>
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
             @for (b of budgetData(); track b.category) {
-              <div style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px;"
-                   [style.border-color]="b.isOver ? 'rgba(255, 77, 77, 0.3)' : (b.isNearLimit ? 'rgba(255, 159, 67, 0.3)' : 'var(--border-glass)')">
+              <div class="glass-card" style="padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-glass); border-radius: 12px; transition: var(--transition);"
+                   [class.overrun-pulse]="b.isOver"
+                   [class.warning-pulse]="b.isNearLimit && !b.isOver"
+                   [style.border-color]="b.isOver ? 'rgba(255, 77, 77, 0.35)' : (b.isNearLimit ? 'rgba(255, 159, 67, 0.3)' : 'var(--border-glass)')">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
-                    <b>{{b.category}}</b>
+                    <b style="font-size: 1rem;">{{b.category}}</b>
                     @if (b.isOver) {
-                      <span style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-exclamation-triangle"></i> OVER</span>
+                      <span style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase;">
+                        <i class="fas fa-exclamation-triangle"></i> {{ store.t().overLabel }}
+                      </span>
                     } @else if (b.isNearLimit) {
-                      <span style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-exclamation-circle"></i> 85%+</span>
+                      <span style="background: rgba(255, 159, 67, 0.1); color: #ff9f43; border: 1px solid rgba(255, 159, 67, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase;">
+                        <i class="fas fa-exclamation-circle"></i> {{b.threshold}}%+ {{ store.t().nearLimitLabel }}
+                      </span>
                     }
                   </div>
-                  <span [style.color]="b.isOver ? '#ff4d4d' : (b.isNearLimit ? '#ff9f43' : 'var(--text-dim)')" style="font-weight: 600;">
+                  <span [style.color]="b.isOver ? '#ff4d4d' : (b.isNearLimit ? '#ff9f43' : 'var(--text-dim)')" style="font-weight: 700; font-size: 0.95rem;">
                     {{b.percent.toFixed(0)}}%
                   </span>
                 </div>
-                <div class="progress-bar" style="height: 8px; background: rgba(255,255,255,0.05); margin-bottom: 15px;">
+                <div class="progress-bar" style="height: 10px; background: rgba(255,255,255,0.05); margin-bottom: 15px; border-radius: 6px; overflow: hidden; position: relative;">
                   <div class="progress-fill" [style.width.%]="b.progressPercent"
-                    [style.background]="b.isOver ? '#ff4d4d' : (b.isNearLimit ? '#ff9f43' : 'var(--primary-blue)')"></div>
+                    [class.pulse-animation]="b.isOver || b.isNearLimit"
+                    [style.background]="b.isOver ? 'linear-gradient(90deg, #ff4d4d, #ff7675)' : (b.isNearLimit ? 'linear-gradient(90deg, #ff9f43, #fec062)' : 'linear-gradient(90deg, #3b82f6, #00c6ff)')"
+                    style="height: 100%; border-radius: 6px; transition: width 0.5s ease-in-out;"></div>
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
-                  <span><span style="color: var(--text-dim)">Spent: </span> {{currencySymbol()}}{{b.spent.toLocaleString()}}</span>
-                  <span><span style="color: var(--text-dim)">Budget: </span> {{currencySymbol()}}{{b.amount.toLocaleString()}}</span>
+                  <span><span style="color: var(--text-dim)">{{ store.t().spentLabel }}: </span> {{currencySymbol()}}{{b.spent.toLocaleString()}}</span>
+                  <span><span style="color: var(--text-dim)">{{ store.t().budgetLabel }}: </span> {{currencySymbol()}}{{b.amount.toLocaleString()}}</span>
                 </div>
               </div>
             }
@@ -51,39 +59,39 @@
       @if (savingsInfo(); as info) {
         <div class="glass-card">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h3>Overall Savings Progress</h3>
+            <h3>{{ store.t().overallSavingsProgress }}</h3>
             <div style="display: flex; gap: 10px; align-items: center;">
               <button (click)="toggleGoalModal()" style="background: none; border: none; color: var(--primary-blue); cursor: pointer; font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 4px;">
-                <i class="fas fa-plus"></i> New Goal
+                <i class="fas fa-plus"></i> {{ store.t().newGoal }}
               </button>
               <span style="color: rgba(255,255,255,0.2);">|</span>
-              <a routerLink="/savings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem; font-weight: 600;">View All</a>
+              <a routerLink="/savings" style="color: var(--primary-blue); text-decoration: none; font-size: 0.8rem; font-weight: 600;">{{ store.t().viewAll }}</a>
             </div>
           </div>
           <div style="text-align: center; padding: 10px 0;">
             <div style="font-size: 2.5rem; font-weight: 700; margin-bottom: 5px;">{{info.progressPercent}}%</div>
-            <p style="color: var(--text-dim); font-size: 0.9rem;">Total Progress</p>
+            <p style="color: var(--text-dim); font-size: 0.9rem;">{{ store.t().totalProgress }}</p>
           </div>
           <div class="progress-bar" style="height: 12px; background: rgba(255,255,255,0.05); margin: 15px 0;">
             <div class="progress-fill" [style.width.%]="info.progressPercent"
               style="background: linear-gradient(to right, #00c6ff, #0072ff);"></div>
           </div>
           <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 20px;">
-            <span><span style="color: var(--text-dim)">Current: </span> {{currencySymbol()}}{{info.currentBalance.toLocaleString()}}</span>
-            <span><span style="color: var(--text-dim)">Target: </span> {{currencySymbol()}}{{info.totalGoal.toLocaleString()}}</span>
+            <span><span style="color: var(--text-dim)">{{ store.t().currentLabel }}: </span> {{currencySymbol()}}{{info.currentBalance.toLocaleString()}}</span>
+            <span><span style="color: var(--text-dim)">{{ store.t().targetLabel }}: </span> {{currencySymbol()}}{{info.totalGoal.toLocaleString()}}</span>
           </div>
           <div
             style="padding: 15px; background: rgba(13, 89, 242, 0.1); border-radius: 8px; border-left: 4px solid var(--primary-blue); margin-bottom: 25px;">
             <p style="font-size: 0.85rem;">
               {{info.remaining > 0
-              ? 'You are ' + currencySymbol() + info.remaining.toLocaleString() + ' away from your total target! 🚀'
-              : "Congratulations! You've reached your total savings goal! 🥳"}}
+              ? (store.t().settingsTitle === 'Settings' ? 'You are ' + currencySymbol() + info.remaining.toLocaleString() + ' away from your total target! 🚀' : 'Вам осталось накопить ' + currencySymbol() + info.remaining.toLocaleString() + ' до общей цели! 🚀')
+              : (store.t().settingsTitle === 'Settings' ? "Congratulations! You've reached your total savings goal! 🥳" : 'Поздравляем! Вы достигли своей общей цели сбережений! 🥳')}}
             </p>
           </div>
 
           <!-- Active Goals List -->
           <div style="border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
-            <h4 style="margin-bottom: 15px; font-size: 0.95rem; color: var(--text-dim);">My Savings Goals</h4>
+            <h4 style="margin-bottom: 15px; font-size: 0.95rem; color: var(--text-dim);">{{ store.t().mySavingsGoals }}</h4>
             <div style="display: flex; flex-direction: column; gap: 15px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
               @for (goal of savingsGoals(); track goal.id) {
                 <div style="padding: 12px; background: rgba(255,255,255,0.01); border: 1px solid rgba(255,255,255,0.03); border-radius: 8px;">
@@ -109,7 +117,7 @@
                   </div>
                 </div>
               } @empty {
-                <p style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 10px 0;">No active goals yet.</p>
+                <p style="color: var(--text-dim); font-size: 0.85rem; text-align: center; padding: 10px 0;">{{ store.t().noActiveGoals }}</p>
               }
             </div>
           </div>
@@ -117,7 +125,7 @@
       }
 
       <div class="glass-card">
-        <h3 style="margin-bottom: 20px;">Historical Performance</h3>
+        <h3 style="margin-bottom: 20px;">{{ store.t().historicalPerformance }}</h3>
         @if (chartData(); as cData) {
           <app-base-chart id="historical-performance-chart" type="bar"
             [data]="cData" [options]="{
@@ -142,12 +150,12 @@
     <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
       <div class="modal-container">
         <div class="modal-header">
-          <h2>Set Category Budget</h2>
+          <h2>{{ store.t().setCategoryBudget }}</h2>
           <button class="modal-close" (click)="toggleModal()">×</button>
         </div>
         <form [formGroup]="budgetForm" (ngSubmit)="handleBudgetSubmit()">
           <div class="form-group">
-            <label>Category</label>
+            <label>{{ store.t().categoryLabel }}</label>
             <select formControlName="category" class="form-control">
               @for (c of expenseCategories(); track c) {
                 <option [value]="c">{{c}}</option>
@@ -155,11 +163,11 @@
             </select>
           </div>
           <div class="form-group">
-            <label>Monthly Limit ({{currencySymbol()}})</label>
+            <label>{{ store.t().monthlyLimit }} ({{currencySymbol()}})</label>
             <input type="number" formControlName="amount" class="form-control">
           </div>
           <button type="submit" [disabled]="!budgetForm.valid" class="btn-primary"
-            style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer;">Save Budget</button>
+            style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer;">{{ store.t().saveBudgetBtn }}</button>
         </form>
       </div>
     </div>
@@ -170,33 +178,33 @@
     <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
       <div class="modal-container">
         <div class="modal-header">
-          <h2>{{ editingGoal() ? 'Edit Savings Goal' : 'Create Savings Goal' }}</h2>
+          <h2>{{ editingGoal() ? store.t().editSavingsGoal : store.t().createSavingsGoal }}</h2>
           <button class="modal-close" (click)="toggleGoalModal()">×</button>
         </div>
         <form [formGroup]="goalForm" (ngSubmit)="handleGoalSubmit()">
           <div class="form-group">
-            <label>Goal Name</label>
-            <input type="text" formControlName="name" class="form-control" placeholder="e.g. New Car, Vacation">
+            <label>{{ store.t().goalNameLabel }}</label>
+            <input type="text" formControlName="name" class="form-control" [placeholder]="store.t().settingsTitle === 'Settings' ? 'e.g. New Car, Vacation' : 'например, Новый автомобиль, Отпуск'">
           </div>
           <div class="form-group">
-            <label>Target Amount ({{currencySymbol()}})</label>
+            <label>{{ store.t().targetAmountLabel }} ({{currencySymbol()}})</label>
             <input type="number" formControlName="targetAmount" class="form-control" min="1">
           </div>
           <div class="form-group">
-            <label>Current Saved Amount ({{currencySymbol()}})</label>
+            <label>{{ store.t().currentSavedAmountLabel }} ({{currencySymbol()}})</label>
             <input type="number" formControlName="currentAmount" class="form-control" min="0">
           </div>
           <div class="form-group">
-            <label>Category</label>
-            <input type="text" formControlName="category" class="form-control" placeholder="e.g. Travel, Electronics">
+            <label>{{ store.t().categoryLabel }}</label>
+            <input type="text" formControlName="category" class="form-control" [placeholder]="store.t().settingsTitle === 'Settings' ? 'e.g. Travel, Electronics' : 'например, Путешествия, Электроника'">
           </div>
           <div class="form-group">
-            <label>Target Date (Optional)</label>
+            <label>{{ store.t().targetDateLabel }}</label>
             <input type="date" formControlName="deadline" class="form-control">
           </div>
           <button type="submit" [disabled]="!goalForm.valid" class="btn-primary"
             style="width: 100%; margin-top: 20px; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">
-            {{ editingGoal() ? 'Update Goal' : 'Create Goal' }}
+            {{ editingGoal() ? store.t().updateGoalBtn : store.t().createGoalBtn }}
           </button>
         </form>
       </div>
@@ -208,23 +216,23 @@
     <div class="modal-overlay active" style="display: flex; align-items: center; justify-content: center;">
       <div class="modal-container" style="max-width: 400px;">
         <div class="modal-header">
-          <h2>Add Funds</h2>
+          <h2>{{ store.t().addFundsTitle }}</h2>
           <button class="modal-close" (click)="closeAddFunds()">×</button>
         </div>
         @if (activeGoal(); as goal) {
           <div style="margin-bottom: 20px;">
-            <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 5px;">Adding money to:</p>
+            <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 5px;">{{ store.t().addingMoneyTo }}</p>
             <h3 style="margin: 0;">{{goal.name}}</h3>
           </div>
           
           <div class="form-group">
-            <label>Amount to Add ({{currencySymbol()}})</label>
+            <label>{{ store.t().amountToAddLabel }} ({{currencySymbol()}})</label>
             <input type="number" [value]="fundsAmount()" (input)="handleFundsInput($event)" class="form-control" min="0.01" step="0.01" autofocus>
           </div>
           
           <div style="display: flex; gap: 12px; margin-top: 25px;">
-            <button type="button" (click)="closeAddFunds()" class="btn-secondary" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer;">Cancel</button>
-            <button type="button" (click)="submitAddFunds()" [disabled]="fundsAmount() <= 0" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">Add Funds</button>
+            <button type="button" (click)="closeAddFunds()" class="btn-secondary" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer;">{{ store.t().cancelBtn }}</button>
+            <button type="button" (click)="submitAddFunds()" [disabled]="fundsAmount() <= 0" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">{{ store.t().addFundsBtn }}</button>
           </div>
         }
       </div>
@@ -238,11 +246,11 @@
         <div style="color: #ff4d4d; font-size: 3rem; margin-bottom: 15px;">
           <i class="fas fa-exclamation-triangle"></i>
         </div>
-        <h2>Delete Goal?</h2>
-        <p style="color: var(--text-dim); margin-bottom: 25px;">Are you sure you want to delete this savings goal? This action cannot be undone.</p>
+        <h2>{{ store.t().deleteGoalTitle }}</h2>
+        <p style="color: var(--text-dim); margin-bottom: 25px;">{{ store.t().deleteGoalConfirm }}</p>
         <div style="display: flex; gap: 12px;">
-          <button (click)="closeConfirmDelete()" class="btn-secondary" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer;">Cancel</button>
-          <button (click)="executeDeleteGoal()" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #ff4d4d; color: white; cursor: pointer; font-weight: 600;">Delete</button>
+          <button (click)="closeConfirmDelete()" class="btn-secondary" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer;">{{ store.t().cancelBtn }}</button>
+          <button (click)="executeDeleteGoal()" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: #ff4d4d; color: white; cursor: pointer; font-weight: 600;">{{ store.t().deleteGoalBtn }}</button>
         </div>
       </div>
     </div>

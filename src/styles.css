@@ -479,3 +479,34 @@ select.form-control option {
         opacity: 1;
     }
 }
+
+/* Premium budget warning and overrun animations & classes */
+.pulse-animation {
+    animation: budget-pulse 2.5s infinite ease-in-out;
+}
+
+@keyframes budget-pulse {
+    0% { opacity: 0.85; }
+    50% { opacity: 1; filter: brightness(1.25) drop-shadow(0 0 4px rgba(255, 77, 77, 0.5)); }
+    100% { opacity: 0.85; }
+}
+
+.warning-pulse {
+    animation: warning-border-pulse 2.5s infinite ease-in-out;
+}
+
+@keyframes warning-border-pulse {
+    0% { border-color: rgba(255, 159, 67, 0.25); }
+    50% { border-color: rgba(255, 159, 67, 0.85); box-shadow: 0 0 12px rgba(255, 159, 67, 0.15); }
+    100% { border-color: rgba(255, 159, 67, 0.25); }
+}
+
+.overrun-pulse {
+    animation: overrun-border-pulse 2.5s infinite ease-in-out;
+}
+
+@keyframes overrun-border-pulse {
+    0% { border-color: rgba(255, 77, 77, 0.25); }
+    50% { border-color: rgba(255, 77, 77, 0.95); box-shadow: 0 0 14px rgba(255, 77, 77, 0.25); }
+    100% { border-color: rgba(255, 77, 77, 0.25); }
+}

@@ -14,7 +14,7 @@ import { SavingsGoal } from '../../models/budget.models';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class BudgetComponent {
-  private store = inject(StoreService);
+  readonly store = inject(StoreService);
   private fb = inject(FormBuilder);
   private toastService = inject(ToastService);
 
@@ -134,6 +134,10 @@ export class BudgetComponent {
   budgetData = computed(() => {
     const budgets = this.store.budgets();
     const transactions = this.store.currentCycleTransactions();
+    const user = this.store.user();
+    const threshold = user?.budgetWarningThreshold !== undefined ? user.budgetWarningThreshold : 85;
+    const enableWarning = user?.enableBudgetWarningAlert !== false;
+    const enableOverrun = user?.enableBudgetOverrunAlert !== false;
 
     return budgets.map(b => {
       const spent = transactions
@@ -141,9 +145,9 @@ export class BudgetComponent {
         .reduce((sum, t) => sum + Number(t.amount || 0), 0);
       const percent = b.amount > 0 ? (spent / b.amount) * 100 : 0;
       const progressPercent = Math.min(percent, 100);
-      const isNearLimit = percent >= 85 && percent < 100;
-      const isOver = percent >= 100;
-      return { ...b, spent, percent, progressPercent, isNearLimit, isOver };
+      const isNearLimit = enableWarning && percent >= threshold && percent < 100;
+      const isOver = enableOverrun && percent >= 100;
+      return { ...b, spent, percent, progressPercent, isNearLimit, isOver, threshold };
     });
   });
 
