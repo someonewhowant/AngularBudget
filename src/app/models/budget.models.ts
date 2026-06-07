@@ -64,3 +64,11 @@ export interface Summary {
   balance: number;
   profit: number;
 }
+
+export interface FinancialInsight {
+  type: 'warning' | 'tip' | 'success' | 'info';
+  icon: string;
+  title: string;
+  message: string;
+  colorClass: string;
+}

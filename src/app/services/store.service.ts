@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal, Account, RecurringTransaction } from '../models/budget.models';
+import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal, Account, RecurringTransaction, FinancialInsight } from '../models/budget.models';
 
 const INITIAL_BUDGETS: Budget[] = [
   { category: 'Food', amount: 500 },
@@ -74,6 +74,172 @@ export class StoreService {
   readonly user = computed(() => this.stateSignal().user);
   readonly summary = computed(() => this.calculateSummary(this.stateSignal()));
   readonly recurringTransactions = computed(() => this.stateSignal().recurringTransactions || INITIAL_RECURRING);
+
+  readonly insights = computed<FinancialInsight[]>(() => {
+    const list: FinancialInsight[] = [];
+    const state = this.stateSignal();
+    const transactions = state.transactions;
+    const budgets = state.budgets;
+    const goals = state.savingsGoals;
+    const accounts = this.accountsWithBalance();
+    const recurring = state.recurringTransactions || [];
+    const symbol = this.currencySymbol();
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const todayParts = todayStr.split('-');
+    const currentYearStr = todayParts[0];
+    const currentMonthStr = todayParts[1];
+
+    // 1. Filter transactions for the current month
+    const thisMonthTxs = transactions.filter(t => {
+      if (!t.date) return false;
+      const parts = t.date.split('-');
+      return parts[0] === currentYearStr && parts[1] === currentMonthStr;
+    });
+
+    // 2. Budget Warnings
+    const categoryExpenses = thisMonthTxs
+      .filter(t => t.type === 'expense')
+      .reduce((acc: Record<string, number>, t) => {
+        acc[t.category] = (acc[t.category] || 0) + parseFloat(t.amount.toString());
+        return acc;
+      }, {});
+
+    budgets.forEach(b => {
+      const spent = categoryExpenses[b.category] || 0;
+      const limit = b.amount;
+      if (spent >= limit) {
+        list.push({
+          type: 'warning',
+          icon: 'fa-exclamation-triangle',
+          title: `Budget Overrun: ${b.category}`,
+          message: `You have spent ${symbol}${spent.toFixed(2)} of your ${symbol}${limit.toFixed(2)} budget. You are over by ${symbol}${(spent - limit).toFixed(2)}!`,
+          colorClass: 'warning-red'
+        });
+      } else if (spent >= limit * 0.85) {
+        const pct = Math.round((spent / limit) * 100);
+        list.push({
+          type: 'warning',
+          icon: 'fa-exclamation-circle',
+          title: `Near Budget Limit: ${b.category}`,
+          message: `You have spent ${pct}% (${symbol}${spent.toFixed(2)} / ${symbol}${limit.toFixed(2)}) of your budget. Consider cutting back on ${b.category.toLowerCase()} spending.`,
+          colorClass: 'warning-orange'
+        });
+      }
+    });
+
+    // 3. Cash Flow / Burn Rate Warning
+    const incomeThisMonth = thisMonthTxs
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+    const expenseThisMonth = thisMonthTxs
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + parseFloat(t.amount.toString()), 0);
+
+    if (expenseThisMonth > incomeThisMonth && incomeThisMonth > 0) {
+      const diff = expenseThisMonth - incomeThisMonth;
+      list.push({
+        type: 'warning',
+        icon: 'fa-chart-line',
+        title: 'Negative Net Cash Flow',
+        message: `This month's expenses exceed income by ${symbol}${diff.toFixed(2)}. Look for subscriptions or non-essential categories to reduce.`,
+        colorClass: 'warning-red'
+      });
+    } else if (incomeThisMonth > expenseThisMonth && expenseThisMonth > 0) {
+      const saved = incomeThisMonth - expenseThisMonth;
+      const pct = Math.round((saved / incomeThisMonth) * 100);
+      if (pct >= 20) {
+        list.push({
+          type: 'success',
+          icon: 'fa-thumbs-up',
+          title: 'Strong Savings Rate',
+          message: `Awesome! You have saved ${symbol}${saved.toFixed(2)} (${pct}% of your income) this month. Keep it up!`,
+          colorClass: 'success-green'
+        });
+      }
+    }
+
+    // 4. Low Account Balance Alert
+    accounts.forEach(acc => {
+      const bal = acc.currentBalance;
+      if (bal >= 0 && bal < 50) {
+        list.push({
+          type: 'info',
+          icon: 'fa-wallet',
+          title: `Low Balance: ${acc.name}`,
+          message: `Your balance on "${acc.name}" is only ${symbol}${bal.toFixed(2)}. Make sure you have enough to cover any upcoming bills.`,
+          colorClass: 'info-blue'
+        });
+      } else if (bal < 0) {
+        list.push({
+          type: 'warning',
+          icon: 'fa-credit-card',
+          title: `Overdraft Alert: ${acc.name}`,
+          message: `Your account "${acc.name}" is overdrawn by ${symbol}${Math.abs(bal).toFixed(2)}! Fees may apply.`,
+          colorClass: 'warning-red'
+        });
+      }
+    });
+
+    // 5. Savings Goals Progress
+    goals.forEach(g => {
+      const pct = Math.min(Math.round((g.currentAmount / g.targetAmount) * 100), 100);
+      if (pct === 100) {
+        list.push({
+          type: 'success',
+          icon: 'fa-trophy',
+          title: `Goal Achieved: ${g.name}`,
+          message: `Congratulations! You reached 100% of your target for "${g.name}".`,
+          colorClass: 'success-green'
+        });
+      } else if (pct >= 90) {
+        list.push({
+          type: 'tip',
+          icon: 'fa-bullseye',
+          title: `Goal Within Reach: ${g.name}`,
+          message: `You are only ${100 - pct}% away from your target of ${symbol}${g.targetAmount.toFixed(2)} for "${g.name}"!`,
+          colorClass: 'tip-purple'
+        });
+      }
+    });
+
+    // 6. Upcoming Subscriptions/Bills
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    recurring.forEach(rt => {
+      if (!rt.isActive) return;
+      const due = new Date(rt.nextDueDate);
+      due.setHours(0, 0, 0, 0);
+      const diffTime = due.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      if (diffDays >= 0 && diffDays <= 3) {
+        const acc = accounts.find(a => a.id === rt.account);
+        const accName = acc ? acc.name : rt.account;
+        list.push({
+          type: 'info',
+          icon: 'fa-clock',
+          title: `Upcoming Bill: ${rt.name}`,
+          message: `Your ${rt.frequency} payment of ${symbol}${rt.amount.toFixed(2)} is due in ${diffDays} day(s) (${rt.nextDueDate}) from account "${accName}".`,
+          colorClass: 'info-blue'
+        });
+      }
+    });
+
+    // Default insight if none are triggered
+    if (list.length === 0) {
+      list.push({
+        type: 'info',
+        icon: 'fa-robot',
+        title: 'All Systems Nominal',
+        message: 'Your finances are looking solid! No budget overruns, upcoming bills, or low balances detected. Keep tracking your spending to stay on top.',
+        colorClass: 'info-blue'
+      });
+    }
+
+    return list;
+  });
 
   readonly expenseCategories = signal<string[]>(['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']);
   readonly incomeCategories = signal<string[]>(['Salary', 'Freelance', 'Investments', 'Other']);

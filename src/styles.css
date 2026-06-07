@@ -219,6 +219,31 @@ body {
     text-shadow: 0 0 10px rgba(188, 19, 254, 0.5);
 }
 
+.warning-red {
+    color: #ff4d4d;
+    text-shadow: 0 0 10px rgba(255, 77, 77, 0.5);
+}
+
+.warning-orange {
+    color: #ff9f43;
+    text-shadow: 0 0 10px rgba(255, 159, 67, 0.5);
+}
+
+.success-green {
+    color: #2ed573;
+    text-shadow: 0 0 10px rgba(46, 213, 115, 0.5);
+}
+
+.info-blue {
+    color: var(--primary-blue);
+    text-shadow: 0 0 10px rgba(13, 89, 242, 0.5);
+}
+
+.tip-purple {
+    color: var(--accent-purple);
+    text-shadow: 0 0 10px rgba(188, 19, 254, 0.5);
+}
+
 .progress-bar {
     width: 100%;
     height: 8px;

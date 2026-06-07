@@ -11,6 +11,45 @@
       }
     </header>
 
+    <!-- AI Smart Insights Section -->
+    @if (insights(); as list) {
+      <div class="glass-card" style="margin-bottom: 24px; padding: 20px; border-left: 4px solid var(--accent-purple); background: linear-gradient(135deg, rgba(188, 19, 254, 0.05), rgba(13, 89, 242, 0.05)); backdrop-filter: blur(10px);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+          <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; display: flex; align-items: center; gap: 10px;">
+            <i class="fas fa-brain" style="color: var(--accent-purple); text-shadow: 0 0 10px rgba(188, 19, 254, 0.6);"></i>
+            AI Financial Insights
+          </h3>
+          <span style="font-size: 0.8rem; background: rgba(188, 19, 254, 0.1); color: var(--accent-purple); border: 1px solid rgba(188, 19, 254, 0.2); padding: 2px 8px; border-radius: 20px; font-weight: 600;">
+            {{list.length}} Active
+          </span>
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          @for (insight of list; track insight.title) {
+            <div style="display: flex; align-items: flex-start; gap: 15px; padding: 12px 16px; border-radius: 8px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255,255,255,0.05); transition: transform 0.2s, background 0.2s;"
+                 onmouseover="this.style.background='rgba(255,255,255,0.04)'; this.style.transform='translateX(4px)'"
+                 onmouseout="this.style.background='rgba(255,255,255,0.02)'; this.style.transform='translateX(0)'">
+              
+              <!-- Dynamic Icon with colors -->
+              <div [class]="insight.colorClass" style="font-size: 1.2rem; min-width: 24px; padding-top: 2px; display: flex; align-items: center; justify-content: center;">
+                <i class="fas" [class]="insight.icon"></i>
+              </div>
+
+              <div style="flex: 1;">
+                <h4 style="margin: 0 0 4px 0; font-size: 0.95rem; font-weight: 600;">
+                  {{insight.title}}
+                </h4>
+                <p style="margin: 0; font-size: 0.85rem; color: var(--text-dim); line-height: 1.4;">
+                  {{insight.message}}
+                </p>
+              </div>
+
+            </div>
+          }
+        </div>
+      </div>
+    }
+
     <div class="grid dash-grid">
       <div style="display: flex; flex-direction: column; gap: 24px;">
         @if (summary(); as s) {
