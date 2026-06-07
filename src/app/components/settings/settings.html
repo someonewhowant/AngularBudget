@@ -42,6 +42,23 @@
             }
           </div>
         </div>
+        <div class="glass-card">
+          <h3 style="margin-bottom: 20px;">Backup & Restore</h3>
+          <p style="font-size: 0.9rem; color: var(--text-dim); margin-bottom: 20px;">
+            Export your financial data to a JSON file to keep a backup, or restore from a previously saved file.
+          </p>
+          <div style="display: flex; gap: 15px; flex-direction: column;">
+            <button type="button" (click)="exportData()" style="padding: 12px; background: rgba(255,255,255,0.05); color: var(--primary-blue); border: 1px solid var(--primary-blue); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+              <i class="fas fa-file-export" style="margin-right: 8px;"></i> Export Data
+            </button>
+            <div style="position: relative;">
+              <input type="file" accept=".json" (change)="importData($event)" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; opacity: 0; cursor: pointer;">
+              <button type="button" style="width: 100%; padding: 12px; background: rgba(255,255,255,0.05); color: var(--success-green); border: 1px solid var(--success-green); border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+                <i class="fas fa-file-import" style="margin-right: 8px;"></i> Import Data
+              </button>
+            </div>
+          </div>
+        </div>
         
         <div class="glass-card">
           <h3 style="margin-bottom: 20px;">Danger Zone</h3>

@@ -69,4 +69,68 @@ export class SettingsComponent implements OnInit {
     this.closeConfirmReset();
     this.toastService.show('All application data has been reset.', 'info');
   }
+
+  exportData() {
+    const state = this.store.state();
+    const data = {
+      transactions: state.transactions,
+      budgets: state.budgets,
+      savingsGoals: state.savingsGoals,
+      theme: state.theme,
+      user: state.user,
+      accounts: state.accounts,
+      recurringTransactions: state.recurringTransactions,
+      expenseCategories: this.store.expenseCategories(),
+      incomeCategories: this.store.incomeCategories()
+    };
+    
+    const jsonStr = JSON.stringify(data, null, 2);
+    const blob = new Blob([jsonStr], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `budget_backup_${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    this.toastService.show('Data exported successfully!', 'success');
+  }
+
+  importData(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const data = JSON.parse(content);
+        
+        if (data && data.transactions !== undefined) {
+          localStorage.setItem('transactions', JSON.stringify(data.transactions));
+          if (data.budgets) localStorage.setItem('budgets', JSON.stringify(data.budgets));
+          if (data.savingsGoals) localStorage.setItem('savingsGoals', JSON.stringify(data.savingsGoals));
+          if (data.theme) localStorage.setItem('theme', data.theme);
+          if (data.user) localStorage.setItem('user', JSON.stringify(data.user));
+          if (data.accounts) localStorage.setItem('accounts', JSON.stringify(data.accounts));
+          if (data.recurringTransactions) localStorage.setItem('recurringTransactions', JSON.stringify(data.recurringTransactions));
+          if (data.expenseCategories) localStorage.setItem('expenseCategories', JSON.stringify(data.expenseCategories));
+          if (data.incomeCategories) localStorage.setItem('incomeCategories', JSON.stringify(data.incomeCategories));
+          
+          this.toastService.show('Data imported successfully! Reloading...', 'success');
+          setTimeout(() => location.reload(), 1500);
+        } else {
+          this.toastService.show('Invalid backup file format.', 'error');
+        }
+      } catch (err) {
+        this.toastService.show('Error reading file.', 'error');
+      }
+    };
+    reader.readAsText(file);
+    // Reset file input so same file can be selected again if needed
+    event.target.value = '';
+  }
 }
