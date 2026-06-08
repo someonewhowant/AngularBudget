@@ -45,6 +45,7 @@ export class SettingsComponent implements OnInit {
     budgetWarningThreshold: [85, [Validators.required, Validators.min(1), Validators.max(100)]],
     enableBudgetOverrunAlert: [true],
     enableBudgetWarningAlert: [true],
+    enableBudgetRollover: [false],
     language: ['en', Validators.required]
   });
 
@@ -69,6 +70,7 @@ export class SettingsComponent implements OnInit {
         budgetWarningThreshold: user.budgetWarningThreshold !== undefined ? user.budgetWarningThreshold : 85,
         enableBudgetOverrunAlert: user.enableBudgetOverrunAlert !== false,
         enableBudgetWarningAlert: user.enableBudgetWarningAlert !== false,
+        enableBudgetRollover: !!user.enableBudgetRollover,
         language: user.language || 'en'
       }, { emitEvent: false });
     }
@@ -83,6 +85,7 @@ export class SettingsComponent implements OnInit {
         budgetWarningThreshold: Number(this.profileForm.value.budgetWarningThreshold),
         enableBudgetOverrunAlert: !!this.profileForm.value.enableBudgetOverrunAlert,
         enableBudgetWarningAlert: !!this.profileForm.value.enableBudgetWarningAlert,
+        enableBudgetRollover: !!this.profileForm.value.enableBudgetRollover,
         language: this.profileForm.value.language
       });
       this.toastService.show(this.store.t().saveProfileSuccess || 'Profile updated successfully!', 'success');

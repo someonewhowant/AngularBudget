@@ -51,6 +51,13 @@
                 <input type="checkbox" formControlName="enableBudgetWarningAlert" style="width: 18px; height: 18px; accent-color: var(--primary-blue);">
                 <span>{{ store.t().enableNearLimitAlerts }}</span>
               </label>
+              <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 5px;">
+                <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; font-size: 0.9rem;">
+                  <input type="checkbox" formControlName="enableBudgetRollover" style="width: 18px; height: 18px; accent-color: var(--primary-blue);">
+                  <span>{{ store.t().enableBudgetRollover }}</span>
+                </label>
+                <p style="font-size: 0.75rem; color: var(--text-dim); margin-left: 28px; margin-top: 0; margin-bottom: 0;">{{ store.t().enableBudgetRolloverDesc }}</p>
+              </div>
             </div>
             
             <button type="submit" [disabled]="!profileForm.valid" class="btn-primary">{{ store.t().saveProfile }}</button>

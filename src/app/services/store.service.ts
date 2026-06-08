@@ -128,6 +128,50 @@ export class StoreService {
     });
   });
 
+  readonly previousCycleBounds = computed(() => {
+    const bounds = this.currentCycleBounds();
+    const user = this.stateSignal().user;
+    const startDay = user.budgetStartDay || 1;
+    
+    const prevStart = new Date(bounds.start);
+    prevStart.setMonth(prevStart.getMonth() - 1);
+    
+    const start = this.getClampedDate(prevStart.getFullYear(), prevStart.getMonth(), startDay);
+    return { start, end: bounds.start };
+  });
+
+  readonly previousCycleTransactions = computed(() => {
+    const txs = this.transactions();
+    const bounds = this.previousCycleBounds();
+    const startTime = bounds.start.getTime();
+    const endTime = bounds.end.getTime();
+    
+    return txs.filter(t => {
+      if (!t.date) return false;
+      const txTime = new Date(t.date).getTime();
+      return txTime >= startTime && txTime < endTime;
+    });
+  });
+
+  readonly budgetRollovers = computed<Record<string, number>>(() => {
+    const user = this.user();
+    if (!user?.enableBudgetRollover) {
+      return {};
+    }
+
+    const budgets = this.budgets();
+    const prevTxs = this.previousCycleTransactions();
+
+    const rollovers: Record<string, number> = {};
+    budgets.forEach(b => {
+      const spent = prevTxs
+        .filter(t => t.category === b.category && t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+      rollovers[b.category] = b.amount - spent;
+    });
+    return rollovers;
+  });
+
   private getClampedDate(year: number, month: number, day: number): Date {
     const lastDay = new Date(year, month + 1, 0).getDate();
     return new Date(year, month, Math.min(day, lastDay), 0, 0, 0, 0);
@@ -550,6 +594,23 @@ export class StoreService {
       budgets.push({ category, amount });
     }
     this.updateState({ budgets });
+  }
+
+  getAverageSpending(category: string): number {
+    const bounds = this.currentCycleBounds();
+    const start = new Date(bounds.start);
+    start.setMonth(start.getMonth() - 3);
+    const startTime = start.getTime();
+    const endTime = bounds.start.getTime();
+
+    const txs = this.transactions().filter(t => {
+      if (!t.date || t.category !== category || t.type !== 'expense') return false;
+      const txTime = new Date(t.date).getTime();
+      return txTime >= startTime && txTime < endTime;
+    });
+
+    const totalSpent = txs.reduce((sum, t) => sum + Number(t.amount || 0), 0);
+    return Math.round(totalSpent / 3);
   }
 
   updateProfile(userData: Partial<UserProfile>) {

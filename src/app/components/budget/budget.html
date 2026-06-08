@@ -26,6 +26,15 @@
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                   <div style="display: flex; align-items: center; gap: 8px;">
                     <b style="font-size: 1rem;">{{b.category}}</b>
+                    @if (b.rollover > 0) {
+                      <span style="background: rgba(0, 198, 255, 0.08); color: #00c6ff; border: 1px solid rgba(0, 198, 255, 0.15); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" [title]="store.t().settingsTitle === 'Settings' ? 'Rollover savings from previous cycle' : 'Перенесенные сбережения с прошлого цикла'">
+                        <i class="fas fa-arrow-trend-up"></i> +{{currencySymbol()}}{{b.rollover.toLocaleString()}}
+                      </span>
+                    } @else if (b.rollover < 0) {
+                      <span style="background: rgba(255, 77, 77, 0.08); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.15); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px;" [title]="store.t().settingsTitle === 'Settings' ? 'Debt from overspending in previous cycle' : 'Долг от превышения лимита в прошлом цикле'">
+                        <i class="fas fa-arrow-trend-down"></i> -{{currencySymbol()}}{{Math.abs(b.rollover).toLocaleString()}}
+                      </span>
+                    }
                     @if (b.isOver) {
                       <span style="background: rgba(255, 77, 77, 0.1); color: #ff4d4d; border: 1px solid rgba(255, 77, 77, 0.2); padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: 700; display: inline-flex; align-items: center; gap: 4px; text-transform: uppercase;">
                         <i class="fas fa-exclamation-triangle"></i> {{ store.t().overLabel }}
@@ -48,7 +57,14 @@
                 </div>
                 <div style="display: flex; justify-content: space-between; font-size: 0.85rem;">
                   <span><span style="color: var(--text-dim)">{{ store.t().spentLabel }}: </span> {{currencySymbol()}}{{b.spent.toLocaleString()}}</span>
-                  <span><span style="color: var(--text-dim)">{{ store.t().budgetLabel }}: </span> {{currencySymbol()}}{{b.amount.toLocaleString()}}</span>
+                  <span>
+                    <span style="color: var(--text-dim)">{{ store.t().budgetLabel }}: </span> {{currencySymbol()}}{{b.limit.toLocaleString()}}
+                    @if (b.rollover > 0) {
+                      <span style="font-size: 0.75rem; color: var(--text-dim);" [title]="'Base budget: ' + currencySymbol() + b.amount.toLocaleString()"> (+{{currencySymbol()}}{{b.rollover.toLocaleString()}})</span>
+                    } @else if (b.rollover < 0) {
+                      <span style="font-size: 0.75rem; color: var(--text-dim);" [title]="'Base budget: ' + currencySymbol() + b.amount.toLocaleString()"> (-{{currencySymbol()}}{{Math.abs(b.rollover).toLocaleString()}})</span>
+                    }
+                  </span>
                 </div>
               </div>
             }
@@ -163,7 +179,15 @@
             </select>
           </div>
           <div class="form-group">
-            <label>{{ store.t().monthlyLimit }} ({{currencySymbol()}})</label>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+              <label style="margin: 0;">{{ store.t().monthlyLimit }} ({{currencySymbol()}})</label>
+              @if (getSuggestedBudget() > 0) {
+                <button type="button" (click)="applySuggestedBudget()" 
+                  style="background: rgba(188, 19, 254, 0.1); color: #bc13fe; border: 1px solid rgba(188, 19, 254, 0.25); border-radius: 6px; padding: 2px 8px; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: var(--transition);">
+                  <i class="fas fa-robot"></i> {{ store.t().autoSuggestBtn }}: {{currencySymbol()}}{{getSuggestedBudget().toLocaleString()}}
+                </button>
+              }
+            </div>
             <input type="number" formControlName="amount" class="form-control">
           </div>
           <button type="submit" [disabled]="!budgetForm.valid" class="btn-primary"

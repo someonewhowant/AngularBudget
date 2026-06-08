@@ -22,6 +22,8 @@ export const TRANSLATIONS = {
     budgetWarningThresholdDesc: 'Show a warning when spending reaches this percentage of a category budget.',
     enableOverrunAlerts: 'Enable Overrun Alerts (100% and above)',
     enableNearLimitAlerts: 'Enable Near Limit Alerts',
+    enableBudgetRollover: 'Enable Budget Rollover',
+    enableBudgetRolloverDesc: 'Carry over unspent money or overspending debt to next month.',
     saveProfile: 'Save Profile',
     saveProfileSuccess: 'Profile updated successfully!',
     
@@ -94,6 +96,7 @@ export const TRANSLATIONS = {
     cancelBtn: 'Cancel',
     overLabel: 'OVER',
     nearLimitLabel: 'warning',
+    autoSuggestBtn: 'Auto-suggest',
   },
   ru: {
     // Navigation
@@ -118,6 +121,8 @@ export const TRANSLATIONS = {
     budgetWarningThresholdDesc: 'Показывать предупреждение, когда расходы достигают этого процента от бюджета категории.',
     enableOverrunAlerts: 'Включить уведомления о превышении (100% и выше)',
     enableNearLimitAlerts: 'Включить уведомления о приближении к лимиту',
+    enableBudgetRollover: 'Включить перенос остатков бюджета',
+    enableBudgetRolloverDesc: 'Переносить сэкономленные средства или превышение лимита на следующий месяц.',
     saveProfile: 'Сохранить профиль',
     saveProfileSuccess: 'Профиль успешно обновлен!',
     
@@ -190,5 +195,6 @@ export const TRANSLATIONS = {
     cancelBtn: 'Отмена',
     overLabel: 'ПРЕВЫШЕН',
     nearLimitLabel: 'предупреждение',
+    autoSuggestBtn: 'Рекомендовать',
   }
 };

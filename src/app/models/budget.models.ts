@@ -22,6 +22,7 @@ export interface UserProfile {
   budgetWarningThreshold?: number;
   enableBudgetOverrunAlert?: boolean;
   enableBudgetWarningAlert?: boolean;
+  enableBudgetRollover?: boolean;
   language?: 'en' | 'ru';
 }
 

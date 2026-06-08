@@ -17,6 +17,7 @@ export class BudgetComponent {
   readonly store = inject(StoreService);
   private fb = inject(FormBuilder);
   private toastService = inject(ToastService);
+  readonly Math = Math;
 
   budgets = this.store.budgets;
   summary = this.store.summary;
@@ -134,6 +135,7 @@ export class BudgetComponent {
   budgetData = computed(() => {
     const budgets = this.store.budgets();
     const transactions = this.store.currentCycleTransactions();
+    const rollovers = this.store.budgetRollovers();
     const user = this.store.user();
     const threshold = user?.budgetWarningThreshold !== undefined ? user.budgetWarningThreshold : 85;
     const enableWarning = user?.enableBudgetWarningAlert !== false;
@@ -143,11 +145,25 @@ export class BudgetComponent {
       const spent = transactions
         .filter(t => t.category === b.category && t.type === 'expense')
         .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-      const percent = b.amount > 0 ? (spent / b.amount) * 100 : 0;
+      
+      const rollover = rollovers[b.category] || 0;
+      const limit = Math.max(b.amount + rollover, 0);
+      const percent = limit > 0 ? (spent / limit) * 100 : (spent > 0 ? 100 : 0);
       const progressPercent = Math.min(percent, 100);
       const isNearLimit = enableWarning && percent >= threshold && percent < 100;
       const isOver = enableOverrun && percent >= 100;
-      return { ...b, spent, percent, progressPercent, isNearLimit, isOver, threshold };
+      
+      return { 
+        ...b, 
+        spent, 
+        percent, 
+        progressPercent, 
+        isNearLimit, 
+        isOver, 
+        threshold, 
+        rollover, 
+        limit 
+      };
     });
   });
 
@@ -191,6 +207,25 @@ export class BudgetComponent {
     category: [this.expenseCategories()[0] || 'Food', Validators.required],
     amount: [0, [Validators.required, Validators.min(0.01)]]
   });
+
+  getSuggestedBudget(): number {
+    const category = this.budgetForm.get('category')?.value;
+    if (!category) return 0;
+    return this.store.getAverageSpending(category);
+  }
+
+  applySuggestedBudget() {
+    const suggested = this.getSuggestedBudget();
+    if (suggested > 0) {
+      this.budgetForm.patchValue({ amount: suggested });
+      this.toastService.show(
+        this.store.t().settingsTitle === 'Settings' 
+          ? `Applied auto-suggested limit of ${this.currencySymbol()}${suggested} based on 3-month history.` 
+          : `Применен рекомендованный лимит ${this.currencySymbol()}${suggested} на основе истории за 3 месяца.`,
+        'success'
+      );
+    }
+  }
 
   toggleModal() {
     this.isModalOpen.update(open => !open);
