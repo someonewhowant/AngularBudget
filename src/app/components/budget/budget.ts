@@ -132,6 +132,15 @@ export class BudgetComponent {
     return Math.min(Math.round((goal.currentAmount / goal.targetAmount) * 100), 100);
   }
 
+  expandedParents = signal<Record<string, boolean>>({});
+
+  toggleParent(category: string) {
+    this.expandedParents.update(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  }
+
   budgetData = computed(() => {
     const budgets = this.store.budgets();
     const transactions = this.store.currentCycleTransactions();
@@ -165,6 +174,127 @@ export class BudgetComponent {
         limit 
       };
     });
+  });
+
+  groupedBudgets = computed(() => {
+    const flatBudgets = this.budgetData();
+    const relations = this.store.categoryRelations();
+
+    const budgetMap = new Map<string, typeof flatBudgets[0]>();
+    flatBudgets.forEach(b => {
+      budgetMap.set(b.category, b);
+    });
+
+    const parentCategories = new Set<string>();
+    Object.values(relations).forEach(parentName => {
+      parentCategories.add(parentName);
+    });
+
+    const parents: Array<{
+      category: string;
+      amount: number;
+      spent: number;
+      limit: number;
+      rollover: number;
+      percent: number;
+      progressPercent: number;
+      isNearLimit: boolean;
+      isOver: boolean;
+      threshold: number;
+      subCategories: Array<typeof flatBudgets[0]>;
+      hasSubCategories: boolean;
+      isOwnStandaloneVisible: boolean;
+      ownStandalone?: typeof flatBudgets[0];
+    }> = [];
+
+    const standalones: Array<typeof flatBudgets[0]> = [];
+    const handledSubCategories = new Set<string>();
+
+    parentCategories.forEach(parentName => {
+      let parentBudget = budgetMap.get(parentName);
+      if (!parentBudget) {
+        parentBudget = {
+          category: parentName,
+          amount: 0,
+          spent: 0,
+          percent: 0,
+          progressPercent: 0,
+          isNearLimit: false,
+          isOver: false,
+          threshold: 85,
+          rollover: 0,
+          limit: 0
+        };
+      }
+
+      const subs: Array<typeof flatBudgets[0]> = [];
+      Object.entries(relations).forEach(([subName, pName]) => {
+        if (pName === parentName) {
+          let subBudget = budgetMap.get(subName);
+          if (!subBudget) {
+            subBudget = {
+              category: subName,
+              amount: 0,
+              spent: 0,
+              percent: 0,
+              progressPercent: 0,
+              isNearLimit: false,
+              isOver: false,
+              threshold: 85,
+              rollover: 0,
+              limit: 0
+            };
+          }
+          subs.push(subBudget);
+          handledSubCategories.add(subName);
+        }
+      });
+
+      const ownAmount = parentBudget.amount;
+      const ownSpent = parentBudget.spent;
+      const ownLimit = parentBudget.limit;
+      const ownRollover = parentBudget.rollover;
+
+      const totalAmount = ownAmount + subs.reduce((sum, s) => sum + s.amount, 0);
+      const totalSpent = ownSpent + subs.reduce((sum, s) => sum + s.spent, 0);
+      const totalLimit = ownLimit + subs.reduce((sum, s) => sum + s.limit, 0);
+      const totalRollover = ownRollover + subs.reduce((sum, s) => sum + s.rollover, 0);
+
+      const percent = totalLimit > 0 ? (totalSpent / totalLimit) * 100 : (totalSpent > 0 ? 100 : 0);
+      const progressPercent = Math.min(percent, 100);
+
+      const threshold = parentBudget.threshold;
+      const user = this.store.user();
+      const enableWarning = user?.enableBudgetWarningAlert !== false;
+      const enableOverrun = user?.enableBudgetOverrunAlert !== false;
+      const isNearLimit = enableWarning && percent >= threshold && percent < 100;
+      const isOver = enableOverrun && percent >= 100;
+
+      parents.push({
+        category: parentName,
+        amount: totalAmount,
+        spent: totalSpent,
+        limit: totalLimit,
+        rollover: totalRollover,
+        percent,
+        progressPercent,
+        isNearLimit,
+        isOver,
+        threshold,
+        subCategories: subs,
+        hasSubCategories: subs.length > 0,
+        isOwnStandaloneVisible: ownAmount > 0 || ownSpent > 0,
+        ownStandalone: parentBudget
+      });
+    });
+
+    flatBudgets.forEach(b => {
+      if (!parentCategories.has(b.category) && !handledSubCategories.has(b.category)) {
+        standalones.push(b);
+      }
+    });
+
+    return { parents, standalones };
   });
 
   savingsInfo = computed(() => {

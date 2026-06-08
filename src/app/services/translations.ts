@@ -45,6 +45,8 @@ export const TRANSLATIONS = {
     addCategory: 'Add Category',
     expenseCategories: 'Expense Categories',
     incomeCategories: 'Income Categories',
+    parentCategoryLabel: 'Parent Category (Optional)',
+    noneOption: 'None',
 
     // Settings Backup
     backupRestore: 'Backup & Restore',
@@ -144,6 +146,8 @@ export const TRANSLATIONS = {
     addCategory: 'Добавить категорию',
     expenseCategories: 'Категории расходов',
     incomeCategories: 'Категории доходов',
+    parentCategoryLabel: 'Родительская категория (Необязательно)',
+    noneOption: 'Нет',
 
     // Settings Backup
     backupRestore: 'Резервное копирование',

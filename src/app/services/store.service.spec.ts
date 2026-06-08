@@ -66,6 +66,7 @@ describe('StoreService - Rollover Budgets', () => {
     // Add transaction in previous cycle (May 15)
     service.addTransaction({
       id: 1,
+      account: 'Checking',
       vendor: 'Supermarket',
       category: 'Food',
       amount: 350,
@@ -76,6 +77,7 @@ describe('StoreService - Rollover Budgets', () => {
     // Add transaction in current cycle (June 10) - should NOT affect rollover
     service.addTransaction({
       id: 2,
+      account: 'Checking',
       vendor: 'Restaurant',
       category: 'Food',
       amount: 100,
@@ -100,6 +102,7 @@ describe('StoreService - Rollover Budgets', () => {
     // Add transactions in previous cycle (May 10 & May 20)
     service.addTransaction({
       id: 3,
+      account: 'Checking',
       vendor: 'Cinema',
       category: 'Entertainment',
       amount: 120,
@@ -108,6 +111,7 @@ describe('StoreService - Rollover Budgets', () => {
     });
     service.addTransaction({
       id: 4,
+      account: 'Checking',
       vendor: 'Concert',
       category: 'Entertainment',
       amount: 150,
@@ -157,6 +161,7 @@ describe('StoreService - Smart Auto-Suggestions', () => {
     // Add transactions within the 3-month suggestion range (March 1st to June 1st):
     service.addTransaction({
       id: 1,
+      account: 'Checking',
       vendor: 'Supermarket 1',
       category: 'Food',
       amount: 300,
@@ -165,6 +170,7 @@ describe('StoreService - Smart Auto-Suggestions', () => {
     });
     service.addTransaction({
       id: 2,
+      account: 'Checking',
       vendor: 'Supermarket 2',
       category: 'Food',
       amount: 150,
@@ -173,6 +179,7 @@ describe('StoreService - Smart Auto-Suggestions', () => {
     });
     service.addTransaction({
       id: 3,
+      account: 'Checking',
       vendor: 'Supermarket 3',
       category: 'Food',
       amount: 150,
@@ -183,6 +190,7 @@ describe('StoreService - Smart Auto-Suggestions', () => {
     // Add a transaction outside the range (too old: Feb 20) - should be ignored
     service.addTransaction({
       id: 4,
+      account: 'Checking',
       vendor: 'Supermarket Old',
       category: 'Food',
       amount: 500,
@@ -193,6 +201,7 @@ describe('StoreService - Smart Auto-Suggestions', () => {
     // Add a transaction in the current cycle (June 10) - should be ignored
     service.addTransaction({
       id: 5,
+      account: 'Checking',
       vendor: 'Supermarket Current',
       category: 'Food',
       amount: 200,
@@ -203,6 +212,7 @@ describe('StoreService - Smart Auto-Suggestions', () => {
     // Add an income transaction in Food (should be ignored)
     service.addTransaction({
       id: 6,
+      account: 'Checking',
       vendor: 'Refund',
       category: 'Food',
       amount: 100,
@@ -212,5 +222,69 @@ describe('StoreService - Smart Auto-Suggestions', () => {
 
     // Average spending suggestion should be (300 + 150 + 150) / 3 = 200
     expect(service.getAverageSpending('Food')).toBe(200);
+  });
+});
+
+describe('StoreService - Category Hierarchy & Sub-categories', () => {
+  let service: StoreService;
+
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [StoreService]
+    });
+    service = TestBed.inject(StoreService);
+  });
+
+  it('should add an expense category with a parentId and populate categories computed property', () => {
+    service.addExpenseCategory('Veggies', 'Food');
+    expect(service.expenseCategories()).toContain('Veggies');
+    expect(service.categoryRelations()['Veggies']).toBe('Food');
+
+    const computedCategories = service.categories();
+    const veggies = computedCategories.find(c => c.name === 'Veggies');
+    expect(veggies).toBeDefined();
+    expect(veggies?.parentId).toBe('Food');
+    expect(veggies?.type).toBe('expense');
+  });
+
+  it('should add an income category with a parentId and populate categories computed property', () => {
+    service.addIncomeCategory('Bonus', 'Salary');
+    expect(service.incomeCategories()).toContain('Bonus');
+    expect(service.categoryRelations()['Bonus']).toBe('Salary');
+
+    const computedCategories = service.categories();
+    const bonus = computedCategories.find(c => c.name === 'Bonus');
+    expect(bonus).toBeDefined();
+    expect(bonus?.parentId).toBe('Salary');
+    expect(bonus?.type).toBe('income');
+  });
+
+  it('should update parentId using setCategoryParent', () => {
+    service.addExpenseCategory('Dining Out');
+    expect(service.categoryRelations()['Dining Out']).toBeUndefined();
+
+    service.setCategoryParent('Dining Out', 'Food');
+    expect(service.categoryRelations()['Dining Out']).toBe('Food');
+
+    service.setCategoryParent('Dining Out', undefined);
+    expect(service.categoryRelations()['Dining Out']).toBeUndefined();
+  });
+
+  it('should clean up categoryRelations when a parent or sub-category is deleted', () => {
+    service.addExpenseCategory('SubCategory', 'ParentCategory');
+    expect(service.categoryRelations()['SubCategory']).toBe('ParentCategory');
+
+    // Deleting a sub-category should remove its relation entry
+    service.deleteExpenseCategory('SubCategory');
+    expect(service.categoryRelations()['SubCategory']).toBeUndefined();
+
+    // Deleting a parent category should clean up relations pointing to it
+    service.addExpenseCategory('SubCategory2', 'ParentCategory');
+    expect(service.categoryRelations()['SubCategory2']).toBe('ParentCategory');
+
+    service.deleteExpenseCategory('ParentCategory');
+    expect(service.categoryRelations()['SubCategory2']).toBeUndefined();
   });
 });

@@ -18,6 +18,7 @@ export class SavingsComponent {
 
   savingsGoals = this.store.savingsGoals;
   currencySymbol = this.store.currencySymbol;
+  expenseCategories = this.store.expenseCategories;
 
   isModalOpen = signal(false);
   editingGoal = signal<SavingsGoal | null>(null);
@@ -36,6 +37,12 @@ export class SavingsComponent {
     currentAmount: [0, [Validators.required, Validators.min(0)]],
     category: ['General', Validators.required],
     deadline: ['']
+  });
+
+  isLinkModalOpen = signal(false);
+  activeLinkGoal = signal<SavingsGoal | null>(null);
+  linkForm: FormGroup = this.fb.group({
+    linkedBudgetCategories: [[]]
   });
 
   toggleModal(goal?: SavingsGoal) {
@@ -121,6 +128,29 @@ export class SavingsComponent {
   handleFundsInput(event: Event) {
     const input = event.target as HTMLInputElement;
     this.fundsAmount.set(parseFloat(input.value) || 0);
+  }
+
+  openLinkModal(goal: SavingsGoal) {
+    this.activeLinkGoal.set(goal);
+    this.linkForm.patchValue({
+      linkedBudgetCategories: goal.linkedBudgetCategories || []
+    });
+    this.isLinkModalOpen.set(true);
+  }
+
+  closeLinkModal() {
+    this.isLinkModalOpen.set(false);
+    this.activeLinkGoal.set(null);
+  }
+
+  submitLinkModal() {
+    const goal = this.activeLinkGoal();
+    if (goal) {
+      const linkedBudgetCategories = this.linkForm.value.linkedBudgetCategories || [];
+      this.store.updateSavingsGoal({ ...goal, linkedBudgetCategories });
+      this.closeLinkModal();
+      this.toastService.show('Auto-fund rules updated successfully!', 'success');
+    }
   }
 
   getProgress(goal: SavingsGoal): number {

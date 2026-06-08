@@ -51,7 +51,8 @@ export class SettingsComponent implements OnInit {
 
   catForm: FormGroup = this.fb.group({
     name: ['', Validators.required],
-    type: ['expense', Validators.required]
+    type: ['expense', Validators.required],
+    parentId: ['']
   });
 
   themes = [
@@ -107,27 +108,39 @@ export class SettingsComponent implements OnInit {
     this.toastService.show(lang === 'ru' ? 'Язык успешно изменен!' : 'Language changed successfully!', 'success');
   }
 
+  getParentCategories(): string[] {
+    const type = this.catForm.get('type')?.value;
+    if (type === 'expense') {
+      return this.expenseCategories().filter(cat => !this.store.categoryRelations()[cat]);
+    } else {
+      return this.incomeCategories().filter(cat => !this.store.categoryRelations()[cat]);
+    }
+  }
+
   handleAddCategory() {
     if (this.catForm.valid) {
-      const { name, type } = this.catForm.value;
+      const { name, type, parentId } = this.catForm.value;
       const cleanName = name.trim();
       if (!cleanName) return;
+      
+      const parentVal = parentId || undefined;
       
       if (type === 'expense') {
         if (this.expenseCategories().some(c => c.toLowerCase() === cleanName.toLowerCase())) {
           this.toastService.show(`Expense category "${cleanName}" already exists!`, 'info');
           return;
         }
-        this.store.addExpenseCategory(cleanName);
+        this.store.addExpenseCategory(cleanName, parentVal);
       } else {
         if (this.incomeCategories().some(c => c.toLowerCase() === cleanName.toLowerCase())) {
           this.toastService.show(`Income category "${cleanName}" already exists!`, 'info');
           return;
         }
-        this.store.addIncomeCategory(cleanName);
+        this.store.addIncomeCategory(cleanName, parentVal);
       }
       this.toastService.show(`Category "${cleanName}" added successfully!`, 'success');
       this.catForm.get('name')?.reset('');
+      this.catForm.get('parentId')?.reset('');
     }
   }
 

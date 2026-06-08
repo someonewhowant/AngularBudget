@@ -24,6 +24,7 @@ export interface UserProfile {
   enableBudgetWarningAlert?: boolean;
   enableBudgetRollover?: boolean;
   language?: 'en' | 'ru';
+  processedRolloverCycles?: string[];
 }
 
 export interface SavingsGoal {
@@ -33,6 +34,7 @@ export interface SavingsGoal {
   currentAmount: number;
   category: string;
   deadline?: string;
+  linkedBudgetCategories?: string[];
 }
 
 export interface Account {
@@ -78,4 +80,10 @@ export interface FinancialInsight {
   title: string;
   message: string;
   colorClass: string;
+}
+
+export interface Category {
+  name: string;
+  type: 'expense' | 'income';
+  parentId?: string;
 }

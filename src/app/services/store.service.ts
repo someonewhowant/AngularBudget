@@ -1,6 +1,6 @@
 import { Injectable, signal, computed, effect, PLATFORM_ID, inject } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal, Account, RecurringTransaction, FinancialInsight } from '../models/budget.models';
+import { AppState, Transaction, Budget, UserProfile, Summary, SavingsGoal, Account, RecurringTransaction, FinancialInsight, Category } from '../models/budget.models';
 import { TRANSLATIONS } from './translations';
 
 const INITIAL_BUDGETS: Budget[] = [
@@ -161,13 +161,28 @@ export class StoreService {
 
     const budgets = this.budgets();
     const prevTxs = this.previousCycleTransactions();
+    const goals = this.savingsGoals();
+
+    const linkedCategories = new Set<string>();
+    goals.forEach(g => {
+      if (g.linkedBudgetCategories) {
+        g.linkedBudgetCategories.forEach(cat => linkedCategories.add(cat));
+      }
+    });
 
     const rollovers: Record<string, number> = {};
     budgets.forEach(b => {
       const spent = prevTxs
         .filter(t => t.category === b.category && t.type === 'expense')
         .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-      rollovers[b.category] = b.amount - spent;
+        
+      const surplus = b.amount - spent;
+      
+      if (surplus > 0 && linkedCategories.has(b.category)) {
+        rollovers[b.category] = 0;
+      } else {
+        rollovers[b.category] = surplus;
+      }
     });
     return rollovers;
   });
@@ -344,6 +359,30 @@ export class StoreService {
 
   readonly expenseCategories = signal<string[]>(['Food', 'Housing', 'Entertainment', 'Electronics', 'Groceries']);
   readonly incomeCategories = signal<string[]>(['Salary', 'Freelance', 'Investments', 'Other']);
+  readonly categoryRelations = signal<Record<string, string>>({});
+
+  readonly categories = computed<Category[]>(() => {
+    const expense = this.expenseCategories();
+    const income = this.incomeCategories();
+    const relations = this.categoryRelations();
+
+    const list: Category[] = [];
+    expense.forEach(c => {
+      list.push({
+        name: c,
+        type: 'expense',
+        parentId: relations[c] || undefined
+      });
+    });
+    income.forEach(c => {
+      list.push({
+        name: c,
+        type: 'income',
+        parentId: relations[c] || undefined
+      });
+    });
+    return list;
+  });
 
   readonly currencies = signal(CURRENCIES);
 
@@ -385,6 +424,10 @@ export class StoreService {
       if (savedIncome) {
         this.incomeCategories.set(JSON.parse(savedIncome));
       }
+      const savedRelations = localStorage.getItem('categoryRelations');
+      if (savedRelations) {
+        this.categoryRelations.set(JSON.parse(savedRelations));
+      }
 
       effect(() => {
         const state = this.stateSignal();
@@ -394,6 +437,7 @@ export class StoreService {
         localStorage.setItem('user', JSON.stringify(state.user));
         localStorage.setItem('accounts', JSON.stringify(state.accounts || DEFAULT_ACCOUNTS));
         localStorage.setItem('recurringTransactions', JSON.stringify(state.recurringTransactions || INITIAL_RECURRING));
+        localStorage.setItem('categoryRelations', JSON.stringify(this.categoryRelations()));
         localStorage.setItem('theme', state.theme);
         this.applyTheme(state.theme);
       });
@@ -401,8 +445,58 @@ export class StoreService {
       this.applyTheme(this.stateSignal().theme);
       
       // Automatically process any due recurring payments/income
-      setTimeout(() => this.processDueRecurringTransactions(), 0);
+      setTimeout(() => {
+        this.processDueRecurringTransactions();
+        this.processSurplusToSavings();
+      }, 0);
     }
+  }
+
+  processSurplusToSavings() {
+    const state = this.stateSignal();
+    const goals = state.savingsGoals || [];
+    const user = state.user;
+    
+    if (!user?.enableBudgetRollover) return;
+    
+    const goalsWithLinks = goals.filter(g => g.linkedBudgetCategories && g.linkedBudgetCategories.length > 0);
+    if (goalsWithLinks.length === 0) return;
+    
+    const bounds = this.previousCycleBounds();
+    const cycleId = `${bounds.start.getFullYear()}-${bounds.start.getMonth() + 1}`;
+    
+    const processedCycles = user.processedRolloverCycles || [];
+    if (processedCycles.includes(cycleId)) {
+      return;
+    }
+    
+    const budgets = state.budgets;
+    const prevTxs = this.previousCycleTransactions();
+    
+    let stateUpdated = false;
+    let newGoals = [...goals];
+    
+    budgets.forEach(b => {
+      const linkedGoalIndex = newGoals.findIndex(g => g.linkedBudgetCategories?.includes(b.category));
+      if (linkedGoalIndex !== -1) {
+        const spent = prevTxs
+          .filter(t => t.category === b.category && t.type === 'expense')
+          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+          
+        const surplus = b.amount - spent;
+        if (surplus > 0) {
+          let goal = { ...newGoals[linkedGoalIndex] };
+          goal.currentAmount += surplus;
+          newGoals[linkedGoalIndex] = goal;
+          stateUpdated = true;
+        }
+      }
+    });
+    
+    this.updateState({
+      savingsGoals: newGoals,
+      user: { ...user, processedRolloverCycles: [...processedCycles, cycleId] }
+    });
   }
 
   processDueRecurringTransactions() {
@@ -620,37 +714,82 @@ export class StoreService {
   }
 
   // Categories Management
-  addExpenseCategory(category: string) {
+  addExpenseCategory(category: string, parentId?: string) {
     const trimmed = category.trim();
     if (trimmed && !this.expenseCategories().includes(trimmed)) {
       this.expenseCategories.update(cats => [...cats, trimmed]);
+      if (parentId) {
+        this.categoryRelations.update(r => ({ ...r, [trimmed]: parentId }));
+      }
       if (isPlatformBrowser(this.platformId)) {
         localStorage.setItem('expenseCategories', JSON.stringify(this.expenseCategories()));
+        localStorage.setItem('categoryRelations', JSON.stringify(this.categoryRelations()));
       }
     }
   }
 
   deleteExpenseCategory(category: string) {
     this.expenseCategories.update(cats => cats.filter(c => c !== category));
+    this.categoryRelations.update(r => {
+      const updated = { ...r };
+      delete updated[category];
+      Object.keys(updated).forEach(k => {
+        if (updated[k] === category) {
+          delete updated[k];
+        }
+      });
+      return updated;
+    });
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('expenseCategories', JSON.stringify(this.expenseCategories()));
+      localStorage.setItem('categoryRelations', JSON.stringify(this.categoryRelations()));
     }
   }
 
-  addIncomeCategory(category: string) {
+  addIncomeCategory(category: string, parentId?: string) {
     const trimmed = category.trim();
     if (trimmed && !this.incomeCategories().includes(trimmed)) {
       this.incomeCategories.update(cats => [...cats, trimmed]);
+      if (parentId) {
+        this.categoryRelations.update(r => ({ ...r, [trimmed]: parentId }));
+      }
       if (isPlatformBrowser(this.platformId)) {
         localStorage.setItem('incomeCategories', JSON.stringify(this.incomeCategories()));
+        localStorage.setItem('categoryRelations', JSON.stringify(this.categoryRelations()));
       }
     }
   }
 
   deleteIncomeCategory(category: string) {
     this.incomeCategories.update(cats => cats.filter(c => c !== category));
+    this.categoryRelations.update(r => {
+      const updated = { ...r };
+      delete updated[category];
+      Object.keys(updated).forEach(k => {
+        if (updated[k] === category) {
+          delete updated[k];
+        }
+      });
+      return updated;
+    });
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('incomeCategories', JSON.stringify(this.incomeCategories()));
+      localStorage.setItem('categoryRelations', JSON.stringify(this.categoryRelations()));
+    }
+  }
+
+  setCategoryParent(category: string, parentId: string | undefined) {
+    this.categoryRelations.update(r => {
+      const updated = { ...r };
+      if (parentId) {
+        updated[category] = parentId;
+      } else {
+        delete updated[category];
+      }
+      return updated;
+    });
+    if (isPlatformBrowser(this.platformId)) {
+      localStorage.setItem('categoryRelations', JSON.stringify(this.categoryRelations()));
     }
   }
 

@@ -149,7 +149,7 @@
           
           <!-- Add Category Form -->
           <form [formGroup]="catForm" (ngSubmit)="handleAddCategory()" style="margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid rgba(255,255,255,0.08);">
-            <div style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 16px; align-items: flex-end;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 16px; align-items: flex-end;">
               <div class="form-group" style="margin: 0;">
                 <label>{{ store.t().categoryName }}</label>
                 <input type="text" formControlName="name" class="form-control" placeholder="e.g. Health, Gift, Bonus">
@@ -159,6 +159,15 @@
                 <select formControlName="type" class="form-control">
                   <option value="expense">{{ store.t().expense }}</option>
                   <option value="income">{{ store.t().income }}</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin: 0;">
+                <label>{{ store.t().parentCategoryLabel }}</label>
+                <select formControlName="parentId" class="form-control">
+                  <option value="">-- {{ store.t().noneOption }} --</option>
+                  @for (parent of getParentCategories(); track parent) {
+                    <option [value]="parent">{{ parent }}</option>
+                  }
                 </select>
               </div>
               <button type="submit" [disabled]="!catForm.valid" class="btn-primary" 
@@ -178,7 +187,14 @@
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
                 @for (cat of expenseCategories(); track cat) {
                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.9rem;">
-                    <span>{{cat}}</span>
+                    <div style="display: flex; flex-direction: column; text-align: left;">
+                      <span>{{cat}}</span>
+                      @if (store.categoryRelations()[cat]) {
+                        <span style="font-size: 0.7rem; color: var(--accent-purple); opacity: 0.8;">
+                          ↳ {{ store.categoryRelations()[cat] }}
+                        </span>
+                      }
+                    </div>
                     <button type="button" (click)="handleDeleteCategory(cat, 'expense')" 
                             style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.85rem;"
                             [title]="store.t().settingsTitle === 'Settings' ? 'Delete category' : 'Удалить категорию'">
@@ -197,7 +213,14 @@
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px; max-height: 250px; overflow-y: auto; padding-right: 5px;">
                 @for (cat of incomeCategories(); track cat) {
                   <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; font-size: 0.9rem;">
-                    <span>{{cat}}</span>
+                    <div style="display: flex; flex-direction: column; text-align: left;">
+                      <span>{{cat}}</span>
+                      @if (store.categoryRelations()[cat]) {
+                        <span style="font-size: 0.7rem; color: var(--primary-blue); opacity: 0.8;">
+                          ↳ {{ store.categoryRelations()[cat] }}
+                        </span>
+                      }
+                    </div>
                     <button type="button" (click)="handleDeleteCategory(cat, 'income')" 
                             style="background: none; border: none; color: #ff4d4d; cursor: pointer; padding: 2px 5px; font-size: 0.85rem;"
                             [title]="store.t().settingsTitle === 'Settings' ? 'Delete category' : 'Удалить категорию'">
