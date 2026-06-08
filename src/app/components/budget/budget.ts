@@ -102,9 +102,18 @@ export class BudgetComponent {
     }
   }
 
+  accounts = this.store.accountsWithBalance;
+  selectedAccountId = signal<string>('');
+
   openAddFunds(goal: SavingsGoal) {
     this.activeGoal.set(goal);
     this.fundsAmount.set(0);
+    const accList = this.accounts();
+    if (accList && accList.length > 0) {
+      this.selectedAccountId.set(accList[0].id);
+    } else {
+      this.selectedAccountId.set('');
+    }
     this.isAddFundsOpen.set(true);
   }
 
@@ -116,8 +125,9 @@ export class BudgetComponent {
   submitAddFunds() {
     const goal = this.activeGoal();
     const amount = this.fundsAmount();
-    if (goal && amount > 0) {
-      this.store.addToSavingsGoal(goal.id, amount);
+    const accountId = this.selectedAccountId();
+    if (goal && amount > 0 && accountId) {
+      this.store.addToSavingsGoal(goal.id, amount, accountId);
       this.closeAddFunds();
       this.toastService.show(`Successfully added ${this.currencySymbol()}${amount} to ${goal.name}!`, 'success');
     }

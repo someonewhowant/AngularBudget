@@ -288,3 +288,121 @@ describe('StoreService - Category Hierarchy & Sub-categories', () => {
     expect(service.categoryRelations()['SubCategory2']).toBeUndefined();
   });
 });
+
+describe('StoreService - Waterfall Priority Funding', () => {
+  let service: StoreService;
+
+  beforeEach(() => {
+    TestBed.resetTestingModule();
+    
+    // Lock system time to a fixed date: June 15, 2026
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-06-15T12:00:00Z'));
+
+    localStorage.clear();
+    TestBed.configureTestingModule({
+      providers: [StoreService]
+    });
+    service = TestBed.inject(StoreService);
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('should manually distribute waterfall funds to goals in priority order', () => {
+    // Add mock account and savings goals
+    service.updateState({
+      accounts: [{ id: 'Checking', name: 'Checking', type: 'checking', balance: 1000 }],
+      savingsGoals: [
+        { id: 1, name: 'New Car', targetAmount: 500, currentAmount: 100, category: 'Transport', priority: 2 },
+        { id: 2, name: 'Emergency Fund', targetAmount: 300, currentAmount: 100, category: 'Security', priority: 1 }
+      ]
+    });
+
+    service.distributeWaterfallManual(300, 'Checking');
+
+    const goals = service.savingsGoals();
+    const emergencyFund = goals.find(g => g.id === 2);
+    const newCar = goals.find(g => g.id === 1);
+
+    // Emergency Fund (Priority 1) should get 200 to be fully funded (100 -> 300)
+    expect(emergencyFund?.currentAmount).toBe(300);
+    // New Car (Priority 2) should get the remaining 100 (100 -> 200)
+    expect(newCar?.currentAmount).toBe(200);
+
+    // Verify transactions
+    const txs = service.transactions();
+    expect(txs.length).toBe(2);
+    expect(txs.some(t => t.vendor.includes('Emergency Fund') && t.amount === 200)).toBe(true);
+    expect(txs.some(t => t.vendor.includes('New Car') && t.amount === 100)).toBe(true);
+  });
+
+  it('should auto-sweep leftover surplus to goals in priority order at end of cycle', () => {
+    service.updateProfile({
+      enableBudgetRollover: true,
+      enableWaterfallFunding: true,
+      waterfallSourceAccountId: 'Checking'
+    });
+    
+    // Setup budget and savings goals
+    service.updateState({
+      budgets: [{ category: 'Food', amount: 500 }],
+      accounts: [{ id: 'Checking', name: 'Checking', type: 'checking', balance: 1000 }],
+      savingsGoals: [
+        { id: 1, name: 'New Car', targetAmount: 500, currentAmount: 100, category: 'Transport', priority: 2 },
+        { id: 2, name: 'Emergency Fund', targetAmount: 300, currentAmount: 100, category: 'Security', priority: 1 }
+      ]
+    });
+
+    // Add transaction in previous cycle (May 15)
+    service.addTransaction({
+      id: 99,
+      account: 'Checking',
+      vendor: 'Supermarket',
+      category: 'Food',
+      amount: 300,
+      type: 'expense',
+      date: '2026-05-15T10:00:00Z'
+    });
+
+    // Run surplus sweeps (May cycle surplus: 500 - 300 = 200)
+    service.processSurplusToSavings();
+
+    const goals = service.savingsGoals();
+    const emergencyFund = goals.find(g => g.id === 2);
+    const newCar = goals.find(g => g.id === 1);
+
+    // Emergency Fund (Priority 1) should get the full 200 (100 -> 300)
+    expect(emergencyFund?.currentAmount).toBe(300);
+    // New Car (Priority 2) should get 0
+    expect(newCar?.currentAmount).toBe(100);
+
+    // Verify sweep transactions
+    const txs = service.transactions().filter(t => t.id !== 99);
+    expect(txs.length).toBe(1);
+    expect(txs[0].amount).toBe(200);
+    expect(txs[0].vendor).toContain('Emergency Fund');
+  });
+
+  it('should successfully add funds to savings goal using DEFAULT_ACCOUNTS fallback', () => {
+    service['updateState']({
+      accounts: undefined,
+      savingsGoals: [
+        { id: 1, name: 'Vacation', targetAmount: 1000, currentAmount: 100, category: 'Travel', priority: 1 }
+      ],
+      transactions: []
+    });
+
+    service.addToSavingsGoal(1, 150, 'cash');
+
+    const goals = service.savingsGoals();
+    expect(goals[0].currentAmount).toBe(250);
+
+    const txs = service.transactions();
+    expect(txs.length).toBe(1);
+    expect(txs[0].amount).toBe(150);
+    expect(txs[0].account).toBe('cash');
+    expect(txs[0].category).toBe('Savings');
+  });
+});

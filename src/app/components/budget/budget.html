@@ -337,6 +337,22 @@
             <h3 style="margin: 0;">{{goal.name}}</h3>
           </div>
           
+          @if (accounts().length === 0) {
+            <div style="background: rgba(255, 77, 77, 0.1); border-left: 3px solid #ff4d4d; padding: 10px; border-radius: 4px; color: #ff4d4d; font-size: 0.85rem; margin-bottom: 15px;">
+              <i class="fas fa-exclamation-circle"></i>
+              Please create an account in Settings/Accounts first.
+            </div>
+          } @else {
+            <div class="form-group" style="margin-bottom: 15px;">
+              <label>Source Account</label>
+              <select [value]="selectedAccountId()" (change)="selectedAccountId.set($any($event.target).value)" class="form-control" required style="width: 100%; height: 40px; border-radius: 8px; background: rgba(0,0,0,0.2); border: 1px solid var(--border-glass); color: white; padding: 0 10px;">
+                @for (acc of accounts(); track acc.id) {
+                  <option [value]="acc.id">{{acc.name}} ({{currencySymbol()}}{{acc.currentBalance.toLocaleString()}})</option>
+                }
+              </select>
+            </div>
+          }
+
           <div class="form-group">
             <label>{{ store.t().amountToAddLabel }} ({{currencySymbol()}})</label>
             <input type="number" [value]="fundsAmount()" (input)="handleFundsInput($event)" class="form-control" min="0.01" step="0.01" autofocus>
@@ -344,7 +360,7 @@
           
           <div style="display: flex; gap: 12px; margin-top: 25px;">
             <button type="button" (click)="closeAddFunds()" class="btn-secondary" style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-glass); background: rgba(255,255,255,0.05); color: white; cursor: pointer;">{{ store.t().cancelBtn }}</button>
-            <button type="button" (click)="submitAddFunds()" [disabled]="fundsAmount() <= 0" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">{{ store.t().addFundsBtn }}</button>
+            <button type="button" (click)="submitAddFunds()" [disabled]="fundsAmount() <= 0 || !selectedAccountId()" class="btn-primary" style="flex: 1; padding: 12px; border-radius: 8px; border: none; background: var(--primary-blue); color: white; cursor: pointer; font-weight: 600;">{{ store.t().addFundsBtn }}</button>
           </div>
         }
       </div>

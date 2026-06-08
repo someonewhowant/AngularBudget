@@ -25,6 +25,8 @@ export interface UserProfile {
   enableBudgetRollover?: boolean;
   language?: 'en' | 'ru';
   processedRolloverCycles?: string[];
+  enableWaterfallFunding?: boolean;
+  waterfallSourceAccountId?: string;
 }
 
 export interface SavingsGoal {
@@ -35,6 +37,8 @@ export interface SavingsGoal {
   category: string;
   deadline?: string;
   linkedBudgetCategories?: string[];
+  createdAt?: string;
+  priority?: number;
 }
 
 export interface Account {

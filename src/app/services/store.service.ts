@@ -12,8 +12,8 @@ const INITIAL_BUDGETS: Budget[] = [
 ];
 
 const INITIAL_SAVINGS_GOALS: SavingsGoal[] = [
-  { id: 1, name: 'New Car', targetAmount: 25000, currentAmount: 5000, category: 'Transport' },
-  { id: 2, name: 'Emergency Fund', targetAmount: 10000, currentAmount: 3000, category: 'Security' }
+  { id: 1, name: 'New Car', targetAmount: 25000, currentAmount: 5000, category: 'Transport', priority: 1 },
+  { id: 2, name: 'Emergency Fund', targetAmount: 10000, currentAmount: 3000, category: 'Security', priority: 2 }
 ];
 
 const INITIAL_RECURRING: RecurringTransaction[] = [
@@ -458,9 +458,10 @@ export class StoreService {
     const user = state.user;
     
     if (!user?.enableBudgetRollover) return;
-    
-    const goalsWithLinks = goals.filter(g => g.linkedBudgetCategories && g.linkedBudgetCategories.length > 0);
-    if (goalsWithLinks.length === 0) return;
+    if (goals.length === 0) return;
+
+    const hasLinks = goals.some(g => g.linkedBudgetCategories && g.linkedBudgetCategories.length > 0);
+    if (!hasLinks && !user.enableWaterfallFunding) return;
     
     const bounds = this.previousCycleBounds();
     const cycleId = `${bounds.start.getFullYear()}-${bounds.start.getMonth() + 1}`;
@@ -473,28 +474,92 @@ export class StoreService {
     const budgets = state.budgets;
     const prevTxs = this.previousCycleTransactions();
     
-    let stateUpdated = false;
     let newGoals = [...goals];
+    let newTransactions = [...state.transactions];
+    let totalWaterfallSurplus = 0;
     
+    const linkedCategories = new Set<string>();
+    goals.forEach(g => {
+      if (g.linkedBudgetCategories) {
+        g.linkedBudgetCategories.forEach(cat => linkedCategories.add(cat));
+      }
+    });
+
     budgets.forEach(b => {
-      const linkedGoalIndex = newGoals.findIndex(g => g.linkedBudgetCategories?.includes(b.category));
-      if (linkedGoalIndex !== -1) {
-        const spent = prevTxs
-          .filter(t => t.category === b.category && t.type === 'expense')
-          .reduce((sum, t) => sum + Number(t.amount || 0), 0);
-          
-        const surplus = b.amount - spent;
-        if (surplus > 0) {
-          let goal = { ...newGoals[linkedGoalIndex] };
-          goal.currentAmount += surplus;
-          newGoals[linkedGoalIndex] = goal;
-          stateUpdated = true;
+      const spent = prevTxs
+        .filter(t => t.category === b.category && t.type === 'expense')
+        .reduce((sum, t) => sum + Number(t.amount || 0), 0);
+        
+      const surplus = b.amount - spent;
+      if (surplus > 0) {
+        if (linkedCategories.has(b.category)) {
+          const linkedGoalIndex = newGoals.findIndex(g => g.linkedBudgetCategories?.includes(b.category));
+          if (linkedGoalIndex !== -1) {
+            newGoals[linkedGoalIndex] = {
+              ...newGoals[linkedGoalIndex],
+              currentAmount: newGoals[linkedGoalIndex].currentAmount + surplus
+            };
+            
+            const newTx: Transaction = {
+              id: Date.now() + Math.random(),
+              account: user.waterfallSourceAccountId || 'cash',
+              vendor: `Surplus Sweep: ${b.category} -> ${newGoals[linkedGoalIndex].name}`,
+              category: 'Savings',
+              amount: surplus,
+              type: 'expense',
+              date: new Date().toISOString().split('T')[0]
+            };
+            newTransactions.push(newTx);
+          }
+        } else if (user.enableWaterfallFunding) {
+          totalWaterfallSurplus += surplus;
         }
       }
     });
+
+    if (user.enableWaterfallFunding && totalWaterfallSurplus > 0) {
+      const sortedGoals = [...newGoals].sort((a, b) => {
+        const pA = a.priority ?? 999;
+        const pB = b.priority ?? 999;
+        return pA - pB;
+      });
+      
+      let remainingSurplus = totalWaterfallSurplus;
+      
+      sortedGoals.forEach(g => {
+        if (remainingSurplus <= 0) return;
+        
+        const needed = g.targetAmount - g.currentAmount;
+        if (needed > 0) {
+          const allocate = Math.min(needed, remainingSurplus);
+          
+          const originalIndex = newGoals.findIndex(org => org.id === g.id);
+          if (originalIndex !== -1) {
+            newGoals[originalIndex] = {
+              ...newGoals[originalIndex],
+              currentAmount: newGoals[originalIndex].currentAmount + allocate
+            };
+            
+            const newTx: Transaction = {
+              id: Date.now() + Math.random(),
+              account: user.waterfallSourceAccountId || 'cash',
+              vendor: `Waterfall Funding: ${newGoals[originalIndex].name} (Priority ${newGoals[originalIndex].priority || 1})`,
+              category: 'Savings',
+              amount: allocate,
+              type: 'expense',
+              date: new Date().toISOString().split('T')[0]
+            };
+            newTransactions.push(newTx);
+            
+            remainingSurplus -= allocate;
+          }
+        }
+      });
+    }
     
     this.updateState({
       savingsGoals: newGoals,
+      transactions: newTransactions,
       user: { ...user, processedRolloverCycles: [...processedCycles, cycleId] }
     });
   }
@@ -614,8 +679,64 @@ export class StoreService {
   // Savings Goals Management
   addSavingsGoal(goal: Omit<SavingsGoal, 'id'>) {
     const id = Date.now();
-    const savingsGoals = [...this.stateSignal().savingsGoals, { ...goal, id }];
+    const createdAt = goal.createdAt || new Date().toISOString().split('T')[0];
+    const priority = goal.priority || (this.stateSignal().savingsGoals.length > 0
+      ? Math.max(...this.stateSignal().savingsGoals.map(g => g.priority || 0)) + 1
+      : 1);
+    const savingsGoals = [...this.stateSignal().savingsGoals, { ...goal, id, createdAt, priority }];
     this.updateState({ savingsGoals });
+  }
+
+  distributeWaterfallManual(amount: number, sourceAccountId: string) {
+    const state = this.stateSignal();
+    const goals = state.savingsGoals || [];
+    
+    if (goals.length === 0 || amount <= 0) return;
+    
+    const sortedGoals = [...goals].sort((a, b) => {
+      const pA = a.priority ?? 999;
+      const pB = b.priority ?? 999;
+      return pA - pB;
+    });
+    
+    let remaining = amount;
+    let newGoals = [...goals];
+    let newTransactions = [...state.transactions];
+    
+    sortedGoals.forEach(g => {
+      if (remaining <= 0) return;
+      
+      const needed = g.targetAmount - g.currentAmount;
+      if (needed > 0) {
+        const allocate = Math.min(needed, remaining);
+        
+        const originalIndex = newGoals.findIndex(org => org.id === g.id);
+        if (originalIndex !== -1) {
+          newGoals[originalIndex] = {
+            ...newGoals[originalIndex],
+            currentAmount: newGoals[originalIndex].currentAmount + allocate
+          };
+          
+          const newTx: Transaction = {
+            id: Date.now() + Math.random(),
+            account: sourceAccountId,
+            vendor: `Waterfall Manual: ${newGoals[originalIndex].name} (Priority ${newGoals[originalIndex].priority || 1})`,
+            category: 'Savings',
+            amount: allocate,
+            type: 'expense',
+            date: new Date().toISOString().split('T')[0]
+          };
+          newTransactions.push(newTx);
+          
+          remaining -= allocate;
+        }
+      }
+    });
+    
+    this.updateState({
+      savingsGoals: newGoals,
+      transactions: newTransactions
+    });
   }
 
   updateSavingsGoal(goal: SavingsGoal) {
@@ -628,14 +749,35 @@ export class StoreService {
     this.updateState({ savingsGoals });
   }
 
-  addToSavingsGoal(id: number, amount: number) {
-    const savingsGoals = this.stateSignal().savingsGoals.map(g => {
-      if (g.id === id) {
-        return { ...g, currentAmount: g.currentAmount + amount };
-      }
-      return g;
-    });
-    this.updateState({ savingsGoals });
+  addToSavingsGoal(id: number, amount: number, accountId: string) {
+    const goals = this.stateSignal().savingsGoals;
+    const goal = goals.find(g => g.id === id);
+    const accounts = this.stateSignal().accounts || DEFAULT_ACCOUNTS;
+    const account = accounts.find(a => a.id === accountId);
+    
+    if (goal && account) {
+      const savingsGoals = goals.map(g => {
+        if (g.id === id) {
+          return { ...g, currentAmount: g.currentAmount + amount };
+        }
+        return g;
+      });
+      
+      const newTx: Transaction = {
+        id: Date.now(),
+        account: account.id,
+        vendor: `Savings: ${goal.name}`,
+        category: 'Savings',
+        amount: amount,
+        type: 'expense',
+        date: new Date().toISOString().split('T')[0]
+      };
+      
+      this.updateState({
+        savingsGoals,
+        transactions: [newTx, ...this.stateSignal().transactions]
+      });
+    }
   }
 
   addTransaction(transaction: Transaction) {
